@@ -1,5 +1,3 @@
-
-
 import React from 'react';
 import { Gift, ThankYouStatus } from '../../types';
 import { formatCurrency } from '../../utils';
@@ -20,7 +18,7 @@ const GiftListItem: React.FC<GiftListItemProps> = ({ gift, onEdit, onToggleThank
     const whatsAppTooltip = phoneNumber ? "Enviar mensagem de agradecimento" : "Telefone não cadastrado para este convidado.";
 
     return (
-        <div className="p-4 flex flex-col md:flex-row md:items-center hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors space-y-3 md:space-y-0 md:space-x-4">
+        <div className="px-4 py-3 flex flex-col md:flex-row md:items-center hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors space-y-3 md:space-y-0">
             {/* Col 1: Convidado / Presente */}
             <div className="w-full md:w-5/12">
                 <p className="font-bold text-brand-gray dark:text-white">{gift.guestName}</p>

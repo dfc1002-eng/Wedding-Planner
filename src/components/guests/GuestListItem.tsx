@@ -15,7 +15,7 @@ const GuestListItem: React.FC<GuestListItemProps> = ({ guest, onEdit, onDelete }
     const cleanedPhone = guest.phone ? cleanPhoneNumber(guest.phone) : '';
 
     return (
-        <div className="p-4 flex flex-col md:flex-row md:items-center hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+        <div className="px-4 py-3 flex flex-col md:flex-row md:items-center hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
             {/* Col 1: Nome e Grupo */}
             <div className="flex-1 mb-3 md:mb-0">
                 <p className="font-bold text-brand-gray dark:text-white flex items-center">

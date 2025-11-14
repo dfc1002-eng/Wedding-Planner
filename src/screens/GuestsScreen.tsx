@@ -163,7 +163,7 @@ const GuestsScreen: React.FC<GuestsScreenProps> = ({ onAddGuest, onEditGuest, on
                 </div>
 
                 {/* Desktop Table Header */}
-                <div className="hidden md:flex p-4 bg-gray-50 dark:bg-gray-900 rounded-t-lg border-b border-gray-200 dark:border-gray-700 sticky top-0 z-10">
+                <div className="hidden md:flex px-4 py-3 bg-gray-50 dark:bg-gray-900 rounded-t-lg border-b border-gray-200 dark:border-gray-700 sticky top-0 z-10">
                     <div className="flex-1 font-semibold text-sm text-brand-gray-light dark:text-gray-400">Convidado</div>
                     <div className="md:w-32 text-center font-semibold text-sm text-brand-gray-light dark:text-gray-400">Acompanhantes</div>
                     <div className="md:w-32 text-center font-semibold text-sm text-brand-gray-light dark:text-gray-400">Status</div>
