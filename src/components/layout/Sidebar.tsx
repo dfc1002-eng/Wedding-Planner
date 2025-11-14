@@ -1,4 +1,3 @@
-
 import React from 'react';
 import Icon from '../ui/Icon';
 import { Screen } from '../../../App';
@@ -15,7 +14,6 @@ const Sidebar: React.FC<SidebarProps> = ({ activeScreen, setActiveScreen, isDark
         { id: 'dashboard', icon: 'grid_view', label: 'Geral' },
         { id: 'vendors', icon: 'storefront', label: 'Fornecedores' },
         { id: 'payments', icon: 'payment', label: 'Pagamentos' },
-        { id: 'checklist', icon: 'checklist', label: 'Checklist' },
         { id: 'guests', icon: 'people', label: 'Convidados' },
         { id: 'giftList', icon: 'card_giftcard', label: 'Presentes' },
         { id: 'settings', icon: 'settings', label: 'Ajustes' },
