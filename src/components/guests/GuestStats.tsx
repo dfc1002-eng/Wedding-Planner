@@ -8,7 +8,7 @@ interface GuestStatsProps {
 }
 
 const StatCard: React.FC<{ icon: string; value: number; label: string; color: string }> = ({ icon, value, label, color }) => (
-    <div className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-md flex items-center gap-4 h-full">
+    <div className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-md flex items-center justify-start gap-4 h-full">
         <div className={`p-3 rounded-full ${color}/10`}>
             <Icon name={icon} className={`text-2xl ${color.replace('bg-', 'text-')}`} />
         </div>
@@ -35,7 +35,7 @@ const GuestStats: React.FC<GuestStatsProps> = ({ guests }) => {
     }, [guests]);
 
     return (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4"> {/* Alterado gap-6 para gap-4 */}
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
             <Tooltip text="Número total de convidados e acompanhantes na lista">
                 <StatCard icon="supervisor_account" value={stats.totalPotentialPeople} label="Estimativa Total" color="bg-purple-500" />
             </Tooltip>
