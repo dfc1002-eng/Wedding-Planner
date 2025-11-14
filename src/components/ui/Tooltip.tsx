@@ -1,48 +1,51 @@
-import React from 'react';
+import React, { useState, ReactNode } from 'react';
 
 interface TooltipProps {
-  children: React.ReactNode;
   text: string;
+  children: ReactNode;
   position?: 'top' | 'bottom' | 'left' | 'right';
+  disabled?: boolean;
 }
 
-const getPositionClasses = (position: string) => {
+const Tooltip: React.FC<TooltipProps> = ({ text, children, position = 'top', disabled = false }) => {
+  const [isVisible, setIsVisible] = useState(false);
+
+  if (disabled) {
+    return <>{children}</>;
+  }
+
+  const getPositionClasses = () => {
     switch (position) {
-        case 'bottom':
-            return 'top-full left-1/2 -translate-x-1/2 mt-2';
-        case 'left':
-            return 'top-1/2 -translate-y-1/2 right-full mr-2';
-        case 'right':
-            return 'top-1/2 -translate-y-1/2 left-full ml-2';
-        case 'top':
-        default:
-            return 'bottom-full left-1/2 -translate-x-1/2 mb-2';
+      case 'top':
+        return 'bottom-full left-1/2 -translate-x-1/2 mb-2';
+      case 'bottom':
+        return 'top-full left-1/2 -translate-x-1/2 mt-2';
+      case 'left':
+        return 'right-full top-1/2 -translate-y-1/2 mr-2';
+      case 'right':
+        return 'left-full top-1/2 -translate-y-1/2 ml-2';
+      default:
+        return 'bottom-full left-1/2 -translate-x-1/2 mb-2';
     }
-}
-
-const Tooltip: React.FC<TooltipProps> = ({ children, text, position = 'bottom' }) => {
-  if (!text) return <>{children}</>;
+  };
 
   return (
-    <div className="relative group">
+    <div 
+      className="relative flex w-full"
+      onMouseEnter={() => setIsVisible(true)}
+      onMouseLeave={() => setIsVisible(false)}
+      onFocus={() => setIsVisible(true)}
+      onBlur={() => setIsVisible(false)}
+    >
       {children}
-      <div className={`absolute ${getPositionClasses(position)} w-max max-w-xs
-                      bg-brand-gray dark:bg-gray-900 text-white text-xs font-semibold 
-                      rounded-md p-2 shadow-lg z-10
-                      opacity-0 group-hover:opacity-100 transition-opacity duration-300
-                      invisible group-hover:visible
-                      pointer-events-none`}>
-        {text}
+      {isVisible && (
         <div 
-          className="absolute bg-brand-gray dark:bg-gray-900 h-2 w-2 transform rotate-45"
-          style={{
-            bottom: position === 'top' ? '-4px' : 'auto',
-            top: position === 'bottom' ? '-4px' : 'auto',
-            left: position === 'left' ? 'auto' : 'calc(50% - 4px)',
-            right: position === 'left' ? '-4px' : 'auto',
-          }}
-        ></div>
-      </div>
+          role="tooltip"
+          className={`absolute z-10 px-3 py-1.5 text-sm font-medium text-white bg-gray-900 rounded-md shadow-sm dark:bg-gray-700 whitespace-nowrap ${getPositionClasses()}`}
+        >
+          {text}
+        </div>
+      )}
     </div>
   );
 };

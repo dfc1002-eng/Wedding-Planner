@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { WeddingDataProvider, useWedding } from './src/context/WeddingDataContext';
 
@@ -26,6 +25,14 @@ export type Screen = 'dashboard' | 'vendors' | 'payments' | 'checklist' | 'guest
 const AppContent: React.FC = () => {
     const [activeScreen, setActiveScreen] = useState<Screen>('dashboard');
     const [isDarkMode, setIsDarkMode] = useState(() => localStorage.getItem('theme') === 'dark');
+    const [isSidebarExpanded, setIsSidebarExpanded] = useState(() => {
+        const savedState = localStorage.getItem('sidebarExpanded');
+        if (savedState !== null) {
+            return savedState === 'true';
+        }
+        // Recolhido por padrão em telas menores
+        return window.innerWidth >= 768;
+    });
 
     // Modal States
     const [isAddVendorModalOpen, setAddVendorModalOpen] = useState(false);
@@ -71,7 +78,12 @@ const AppContent: React.FC = () => {
         }
     }, [isDarkMode]);
 
+    useEffect(() => {
+        localStorage.setItem('sidebarExpanded', String(isSidebarExpanded));
+    }, [isSidebarExpanded]);
+
     const toggleDarkMode = () => setIsDarkMode(prev => !prev);
+    const toggleSidebar = () => setIsSidebarExpanded(prev => !prev);
     
     const showToast = (message: string, type: 'success' | 'error' = 'success') => {
         setToast({ id: Date.now(), message, type });
@@ -213,7 +225,14 @@ const AppContent: React.FC = () => {
 
     return (
         <div className="flex bg-gray-50 dark:bg-gray-900 min-h-screen text-brand-gray dark:text-gray-300">
-            <Sidebar activeScreen={activeScreen} setActiveScreen={setActiveScreen} isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} />
+            <Sidebar 
+                activeScreen={activeScreen} 
+                setActiveScreen={setActiveScreen} 
+                isDarkMode={isDarkMode} 
+                toggleDarkMode={toggleDarkMode}
+                isExpanded={isSidebarExpanded}
+                toggleSidebar={toggleSidebar}
+            />
             <div className="flex-1">
                 <main className="p-10">
                     <Header 
