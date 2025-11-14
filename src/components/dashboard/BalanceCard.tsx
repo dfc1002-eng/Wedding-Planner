@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { formatCurrency } from '../../utils';
 import Tooltip from '../ui/Tooltip';
@@ -43,6 +42,22 @@ const BalanceCard: React.FC<BalanceCardProps> = ({ totalBudget, totalPaid, total
                     <span className="text-brand-gray-light dark:text-gray-400">
                         {contractedPercentage.toFixed(0)}% do orçamento utilizado
                     </span>
+                </div>
+            </div>
+
+            {/* Barra de progresso do orçamento */}
+            <div className="mb-6">
+                <div className="flex justify-between items-center mb-1">
+                    <span className="text-sm text-brand-gray-light dark:text-gray-400">Progresso do Orçamento</span>
+                    <span className="text-sm font-semibold text-brand-gray dark:text-white">
+                        {contractedPercentage.toFixed(0)}% utilizado
+                    </span>
+                </div>
+                <div className="relative w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5">
+                    <div
+                        className="absolute top-0 left-0 h-2.5 bg-brand-gold rounded-full"
+                        style={{ width: `${Math.min(contractedPercentage, 100)}%` }}
+                    ></div>
                 </div>
             </div>
 
