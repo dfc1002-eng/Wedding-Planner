@@ -5,6 +5,7 @@ import Icon from '../components/ui/Icon';
 import GuestStats from '../components/guests/GuestStats';
 import GuestListItem from '../components/guests/GuestListItem';
 import Tooltip from '../components/ui/Tooltip';
+import { GUEST_GROUPS } from '../constants'; // Importar GUEST_GROUPS
 
 interface GuestsScreenProps {
     onAddGuest: () => void;
@@ -16,8 +17,9 @@ const GuestsScreen: React.FC<GuestsScreenProps> = ({ onAddGuest, onEditGuest, on
     const { guests } = useWedding();
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState<GuestStatus | 'all'>('all');
+    const [groupFilter, setGroupFilter] = useState<string | 'all'>('all'); // Novo estado para o filtro de grupo
     const [currentPage, setCurrentPage] = useState(1);
-    const ITEMS_PER_PAGE = 7; // Alterado para 7 itens por página
+    const ITEMS_PER_PAGE = 7;
 
     const filteredGuests = useMemo(() => {
         return guests
@@ -26,15 +28,19 @@ const GuestsScreen: React.FC<GuestsScreenProps> = ({ onAddGuest, onEditGuest, on
                 return guest.status === statusFilter;
             })
             .filter(guest => {
+                if (groupFilter === 'all') return true; // Filtrar por grupo
+                return guest.group === groupFilter;
+            })
+            .filter(guest => {
                 return guest.name.toLowerCase().includes(searchTerm.toLowerCase());
             })
-            .sort((a, b) => a.name.localeCompare(b.name)); // Adicionado ordenação alfabética por nome
-    }, [guests, searchTerm, statusFilter]);
+            .sort((a, b) => a.name.localeCompare(b.name));
+    }, [guests, searchTerm, statusFilter, groupFilter]); // Adicionar groupFilter às dependências
     
     // Reset to page 1 when filters change
     useEffect(() => {
         setCurrentPage(1);
-    }, [searchTerm, statusFilter]);
+    }, [searchTerm, statusFilter, groupFilter]); // Adicionar groupFilter aqui
 
     const totalPages = Math.ceil(filteredGuests.length / ITEMS_PER_PAGE);
 
@@ -54,7 +60,6 @@ const GuestsScreen: React.FC<GuestsScreenProps> = ({ onAddGuest, onEditGuest, on
 
     const handleExportCSV = () => {
         if (guests.length === 0) {
-            // Consider using a more user-friendly notification system if available
             alert("Não há convidados para exportar.");
             return;
         }
@@ -91,7 +96,7 @@ const GuestsScreen: React.FC<GuestsScreenProps> = ({ onAddGuest, onEditGuest, on
 
         const csvContent = [headers.join(','), ...csvRows].join('\n');
 
-        const blob = new Blob([`\uFEFF${csvContent}`], { type: 'text/csv;charset=utf-8;' }); // BOM for Excel
+        const blob = new Blob([`\uFEFF${csvContent}`], { type: 'text/csv;charset=utf-8;' });
         const link = document.createElement("a");
         const url = URL.createObjectURL(blob);
         link.setAttribute("href", url);
@@ -145,8 +150,9 @@ const GuestsScreen: React.FC<GuestsScreenProps> = ({ onAddGuest, onEditGuest, on
                         />
                     </div>
 
-                    {/* Filter Buttons */}
+                    {/* Filter Buttons for Status */}
                     <div className="flex flex-wrap items-center gap-2">
+                        <span className="text-sm font-medium text-brand-gray-light dark:text-gray-400">Status:</span>
                         {(['all', ...Object.values(GuestStatus)] as const).map(status => (
                             <button
                                 key={status}
@@ -161,6 +167,24 @@ const GuestsScreen: React.FC<GuestsScreenProps> = ({ onAddGuest, onEditGuest, on
                             </button>
                         ))}
                     </div>
+                </div>
+
+                {/* Filter Buttons for Groups */}
+                <div className="flex flex-wrap items-center gap-2 mb-4">
+                    <span className="text-sm font-medium text-brand-gray-light dark:text-gray-400">Grupos:</span>
+                    {(['all', ...GUEST_GROUPS] as const).map(group => (
+                        <button
+                            key={group}
+                            onClick={() => setGroupFilter(group)}
+                            className={`px-3 py-1 text-sm font-semibold rounded-full transition-all duration-200 ease-in-out ${
+                                groupFilter === group
+                                    ? 'bg-brand-gold text-white shadow-md'
+                                    : 'bg-white dark:bg-gray-700 text-brand-gray dark:text-gray-300 hover:bg-brand-pink-light dark:hover:bg-gray-600'
+                            }`}
+                        >
+                            {group === 'all' ? 'Todos' : group}
+                        </button>
+                    ))}
                 </div>
 
                 {/* Desktop Table Header */}
