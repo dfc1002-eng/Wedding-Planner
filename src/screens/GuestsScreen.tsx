@@ -1,5 +1,3 @@
-
-
 import React, { useState, useMemo, useEffect } from 'react';
 import { useWedding } from '../context/WeddingDataContext';
 import { Guest, GuestStatus } from '../types';
@@ -19,7 +17,7 @@ const GuestsScreen: React.FC<GuestsScreenProps> = ({ onAddGuest, onEditGuest, on
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState<GuestStatus | 'all'>('all');
     const [currentPage, setCurrentPage] = useState(1);
-    const ITEMS_PER_PAGE = 10;
+    const ITEMS_PER_PAGE = 7; // Alterado para 7 itens por página
 
     const filteredGuests = useMemo(() => {
         return guests

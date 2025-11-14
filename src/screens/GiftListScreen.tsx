@@ -1,6 +1,4 @@
-
-
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useWedding } from '../context/WeddingDataContext';
 import { Gift } from '../types';
 import { formatCurrency } from '../utils';
@@ -17,6 +15,8 @@ interface GiftListScreenProps {
 const GiftListScreen: React.FC<GiftListScreenProps> = ({ onEditGift, onToggleThankYou, onSendWhatsApp }) => {
     const { gifts, guests } = useWedding();
     const [showUnthankedOnly, setShowUnthankedOnly] = useState(false);
+    const [currentPage, setCurrentPage] = useState(1);
+    const ITEMS_PER_PAGE = 7; // Limitado a 7 itens por página
     
     const guestPhoneMap = useMemo(() => {
         return new Map(guests.map(guest => [guest.id, guest.phone]));
@@ -34,6 +34,26 @@ const GiftListScreen: React.FC<GiftListScreenProps> = ({ onEditGift, onToggleTha
             })
             .sort((a, b) => a.guestName.localeCompare(b.guestName));
     }, [gifts, showUnthankedOnly]);
+
+    // Reset to page 1 when filters change
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [showUnthankedOnly]);
+
+    const totalPages = Math.ceil(filteredGifts.length / ITEMS_PER_PAGE);
+
+    // Adjust current page if it's out of bounds (e.g., after deletion)
+    useEffect(() => {
+        if (currentPage > totalPages && totalPages > 0) {
+            setCurrentPage(totalPages);
+        }
+    }, [currentPage, totalPages]);
+
+    const paginatedGifts = useMemo(() => {
+        if (filteredGifts.length === 0) return [];
+        const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+        return filteredGifts.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+    }, [filteredGifts, currentPage]);
 
     const handleExportCSV = () => {
         const headers = [ "Convidado", "Valor (R$)", "Descrição do Presente", "Agradecimento Enviado" ];
@@ -98,8 +118,8 @@ const GiftListScreen: React.FC<GiftListScreenProps> = ({ onEditGift, onToggleTha
 
                 {/* List Container */}
                 <div className="divide-y divide-gray-100 dark:divide-gray-700">
-                    {filteredGifts.length > 0 ? (
-                        filteredGifts.map(gift => (
+                    {paginatedGifts.length > 0 ? (
+                        paginatedGifts.map(gift => (
                             <GiftListItem
                                 key={gift.id}
                                 gift={gift}
@@ -116,6 +136,31 @@ const GiftListScreen: React.FC<GiftListScreenProps> = ({ onEditGift, onToggleTha
                         </div>
                     )}
                 </div>
+
+                {/* Pagination Controls */}
+                {totalPages > 1 && (
+                    <div className="flex justify-between items-center p-4 border-t border-gray-200 dark:border-gray-700">
+                        <button
+                            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                            disabled={currentPage === 1}
+                            className="bg-white hover:bg-gray-100 text-brand-gray dark:bg-gray-700 dark:hover:bg-gray-600 font-bold py-2 px-4 rounded-lg flex items-center space-x-2 transition-colors border dark:border-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            <Icon name="chevron_left" />
+                            <span>Anterior</span>
+                        </button>
+                        <span className="text-sm font-semibold text-brand-gray-light dark:text-gray-400">
+                            Página {currentPage} de {totalPages}
+                        </span>
+                        <button
+                            onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                            disabled={currentPage === totalPages}
+                            className="bg-white hover:bg-gray-100 text-brand-gray dark:bg-gray-700 dark:hover:bg-gray-600 font-bold py-2 px-4 rounded-lg flex items-center space-x-2 transition-colors border dark:border-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            <span>Próximo</span>
+                            <Icon name="chevron_right" />
+                        </button>
+                    </div>
+                )}
             </div>
         </div>
     );
