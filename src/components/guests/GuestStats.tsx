@@ -42,7 +42,7 @@ const GuestStats: React.FC<GuestStatsProps> = ({ guests }) => {
             <Tooltip text="Número total de convites">
                 <StatCard icon="groups" value={stats.totalGuests} label="Convites Enviados" color="bg-blue-500" />
             </Tooltip>
-            <Tooltip text="Soma de convidados confirmados + acompanhantes confirmados. Este é o número para o buffet.">
+            <Tooltip text="Soma de convidados e acompanhantes confirmados">
                 <StatCard icon="person_check" value={stats.totalPeopleConfirmed} label="Pessoas Confirmadas" color="bg-brand-green" />
             </Tooltip>
             {/* Tooltip removido do card 'Pendentes' */}
