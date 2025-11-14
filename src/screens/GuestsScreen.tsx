@@ -130,7 +130,7 @@ const GuestsScreen: React.FC<GuestsScreenProps> = ({ onAddGuest, onEditGuest, on
             
             <GuestStats guests={guests} />
 
-            <div className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-md mt-6">
+            <div className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-md mt-6 max-w-6xl mx-auto">
                 <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-4">
                     {/* Search Input */}
                     <div className="relative w-full md:max-w-xs">
