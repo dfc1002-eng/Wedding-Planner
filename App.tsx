@@ -233,7 +233,7 @@ const AppContent: React.FC = () => {
                 isExpanded={isSidebarExpanded}
                 toggleSidebar={toggleSidebar}
             />
-            <div className="flex-1">
+            <div className="flex-1 min-w-0"> {/* Adicionado min-w-0 aqui */}
                 <main className="p-10">
                     <Header 
                         weddingData={weddingData} 
