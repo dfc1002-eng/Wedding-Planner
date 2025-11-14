@@ -99,7 +99,7 @@ const GiftListScreen: React.FC<GiftListScreenProps> = ({ onEditGift, onToggleTha
                 <p className="text-3xl font-title text-brand-green">{formatCurrency(totalReceived)}</p>
             </div>
 
-            <div className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-md">
+            <div className="bg-white dark:bg-gray-800 p-4 md:p-6 rounded-xl shadow-md">
                 <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-4">
                     {/* Search Input */}
                     <div className="relative w-full md:max-w-xs">
