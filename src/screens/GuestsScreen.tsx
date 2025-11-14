@@ -27,7 +27,8 @@ const GuestsScreen: React.FC<GuestsScreenProps> = ({ onAddGuest, onEditGuest, on
             })
             .filter(guest => {
                 return guest.name.toLowerCase().includes(searchTerm.toLowerCase());
-            });
+            })
+            .sort((a, b) => a.name.localeCompare(b.name)); // Adicionado ordenação alfabética por nome
     }, [guests, searchTerm, statusFilter]);
     
     // Reset to page 1 when filters change
