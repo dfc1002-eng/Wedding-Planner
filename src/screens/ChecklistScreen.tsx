@@ -23,6 +23,19 @@ const ChecklistScreen: React.FC<ChecklistScreenProps> = ({ onToggleTask }) => {
         }, {} as Record<string, Task[]>);
     }, [tasks]);
 
+    const sortedTimeframes = useMemo(() => {
+        const order = [
+            '12 - 18 MESES ANTES',
+            '10 MESES ANTES',
+            '8 MESES ANTES',
+            '6 MESES ANTES',
+            '3 MESES ANTES',
+            '1 MÊS ANTES',
+            'CHECKLIST DA SEMANA DO CASAMENTO'
+        ];
+        return Object.keys(tasksByTimeframe).sort((a, b) => order.indexOf(a) - order.indexOf(b));
+    }, [tasksByTimeframe]);
+
     const handleToggleTimeframe = (timeframe: string) => {
         setCollapsedTimeframes(prev => {
             const newSet = new Set(prev);
@@ -39,10 +52,20 @@ const ChecklistScreen: React.FC<ChecklistScreenProps> = ({ onToggleTask }) => {
         <div>
             <h2 className="text-3xl font-title text-brand-gray dark:text-white mb-6">Checklist do Casamento</h2>
             <div className="space-y-8">
-                {/* FIX: Replaced Object.entries with Object.keys to ensure proper type inference for tasksInGroup, resolving a "property 'map' does not exist on type 'unknown'" error. */}
-                {Object.keys(tasksByTimeframe).map((timeframe) => {
+                {sortedTimeframes.map((timeframe) => {
                     const tasksInGroup = tasksByTimeframe[timeframe];
                     const isCollapsed = collapsedTimeframes.has(timeframe);
+
+                    // Sort tasks within the group: important and incomplete first, then others
+                    const sortedTasksInGroup = [...tasksInGroup].sort((a, b) => {
+                        const aIsImportantAndIncomplete = a.isImportant && !a.completed;
+                        const bIsImportantAndIncomplete = b.isImportant && !b.completed;
+
+                        if (aIsImportantAndIncomplete && !bIsImportantAndIncomplete) return -1;
+                        if (!aIsImportantAndIncomplete && bIsImportantAndIncomplete) return 1;
+                        return 0; // Maintain original order for tasks of same importance/completion status
+                    });
+
                     return (
                         <div key={timeframe}>
                             <button
@@ -56,7 +79,7 @@ const ChecklistScreen: React.FC<ChecklistScreenProps> = ({ onToggleTask }) => {
                             </button>
                             {!isCollapsed && (
                                 <div id={`tasks-${timeframe}`} className="space-y-3">
-                                    {tasksInGroup.map(task => (
+                                    {sortedTasksInGroup.map(task => (
                                        <TaskItem key={task.id} task={task} onToggleTask={onToggleTask} />
                                     ))}
                                 </div>

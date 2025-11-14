@@ -94,7 +94,7 @@ export const MOCK_TASKS: Task[] = [
     { id: 't20', title: 'Fechar a lista de convidados', completed: false, timeframe: '8 MESES ANTES', isImportant: true },
     
     // 6 MESES ANTES
-    { id: 't21', title: 'Enviar o Save the Date', completed: false, timeframe: '6 MESES ANTES' },
+    { id: 't21', title: 'Enviar o Save the Date', completed: false, timeframe: '6 MESES ANTES', isImportant: true }, // Marcado como importante
     { id: 't22', title: 'Escolher local da noite de núpcias', completed: false, timeframe: '6 MESES ANTES' },
     { id: 't23', title: 'Escolher doces, bolo e bem casados', completed: false, timeframe: '6 MESES ANTES', createsVendorCategory: 'Bolo e Doces' },
     { id: 't24', title: 'Terno do noivo', completed: false, timeframe: '6 MESES ANTES', createsVendorCategory: 'Trajes' },
