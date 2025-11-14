@@ -36,7 +36,7 @@ const GuestStats: React.FC<GuestStatsProps> = ({ guests }) => {
 
     return (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4"> {/* Alterado gap-6 para gap-4 */}
-            <Tooltip text="Soma de todos os convidados cadastrados mais todos os seus acompanhantes convidados. Representa o número máximo de pessoas esperadas.">
+            <Tooltip text="Número total de convidados e acompanhantes na lista">
                 <StatCard icon="supervisor_account" value={stats.totalPotentialPeople} label="Estimativa Total" color="bg-purple-500" />
             </Tooltip>
             <Tooltip text="Número total de convites">
