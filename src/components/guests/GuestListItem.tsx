@@ -33,9 +33,9 @@ const GuestListItem: React.FC<GuestListItemProps> = ({ guest, onEdit, onDelete }
             {/* Col 2: Acompanhantes */}
             <div className="md:w-32 flex justify-between items-center md:justify-center mb-2 md:mb-0">
                 <span className="md:hidden text-sm font-semibold text-brand-gray-light">Acompanhantes</span>
-                <Tooltip text="Acompanhantes confirmados / Acompanhantes convidados" position="top">
+                <Tooltip text="Número de acompanhantes (não inclui o convidado principal)" position="top">
                     <p className="text-sm font-bold text-brand-gray dark:text-white">
-                        {guest.status === GuestStatus.Confirmed ? `${guest.confirmedPlusOnes || 0} / ${guest.plusOnes}` : `- / ${guest.plusOnes}`}
+                        {guest.plusOnes}
                     </p>
                 </Tooltip>
             </div>

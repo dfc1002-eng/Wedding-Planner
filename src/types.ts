@@ -89,7 +89,7 @@ export interface Guest {
     group: string; // Ex: 'Família da Noiva', 'Amigos do Noivo'
     table?: number;
     plusOnes: number; // Acompanhantes convidados
-    confirmedPlusOnes?: number; // Acompanhantes que confirmaram
+    // confirmedPlusOnes?: number; // Removido: Acompanhantes que confirmaram
 }
 
 export interface Gift {
@@ -136,7 +136,7 @@ export interface GuestFormData {
     plusOnes: number;
     notes: string;
     status: GuestStatus;
-    confirmedPlusOnes: number;
+    // confirmedPlusOnes: number; // Removido: Acompanhantes que confirmaram
 }
 
 export interface GiftFormData {

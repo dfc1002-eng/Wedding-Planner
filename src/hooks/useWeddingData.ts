@@ -1,4 +1,3 @@
-
 import { useState, useMemo, useCallback, useEffect } from 'react';
 import { differenceInDays, isPast } from 'date-fns';
 // FIX: Imported GuestStatus to resolve reference errors.
@@ -227,7 +226,7 @@ export const useWeddingData = () => {
         const newGuest: Guest = {
             id: crypto.randomUUID(),
             ...data,
-            confirmedPlusOnes: data.status === GuestStatus.Confirmed ? data.confirmedPlusOnes : undefined,
+            // confirmedPlusOnes removido, pois o status do convidado principal se aplica a todos
         };
         setGuests(prev => [...prev, newGuest]);
 
@@ -248,7 +247,7 @@ export const useWeddingData = () => {
                 return {
                     ...g,
                     ...data,
-                    confirmedPlusOnes: data.status === GuestStatus.Confirmed ? data.confirmedPlusOnes : undefined,
+                    // confirmedPlusOnes removido, pois o status do convidado principal se aplica a todos
                 };
             }
             return g;
