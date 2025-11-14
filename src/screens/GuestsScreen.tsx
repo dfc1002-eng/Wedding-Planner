@@ -10,15 +10,17 @@ import { GUEST_GROUPS } from '../constants'; // Importar GUEST_GROUPS
 interface GuestsScreenProps {
     onAddGuest: () => void;
     onEditGuest: (guest: Guest) => void;
-    onDeleteGuest: (guestId: string) => void;
+    onDeleteGuest: (guestIds: string[]) => void; // Alterado para aceitar array de IDs
+    onChangeGuestsStatus: (guestIds: string[], newStatus: GuestStatus) => void; // Nova prop
 }
 
-const GuestsScreen: React.FC<GuestsScreenProps> = ({ onAddGuest, onEditGuest, onDeleteGuest }) => {
+const GuestsScreen: React.FC<GuestsScreenProps> = ({ onAddGuest, onEditGuest, onDeleteGuest, onChangeGuestsStatus }) => {
     const { guests } = useWedding();
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState<GuestStatus | 'all'>('all');
-    const [groupFilter, setGroupFilter] = useState<string | 'all'>('all'); // Novo estado para o filtro de grupo
+    const [groupFilter, setGroupFilter] = useState<string | 'all'>('all');
     const [currentPage, setCurrentPage] = useState(1);
+    const [selectedGuestIds, setSelectedGuestIds] = useState<Set<string>>(new Set()); // Novo estado para seleção
     const ITEMS_PER_PAGE = 7;
 
     const filteredGuests = useMemo(() => {
@@ -28,23 +30,22 @@ const GuestsScreen: React.FC<GuestsScreenProps> = ({ onAddGuest, onEditGuest, on
                 return guest.status === statusFilter;
             })
             .filter(guest => {
-                if (groupFilter === 'all') return true; // Filtrar por grupo
+                if (groupFilter === 'all') return true;
                 return guest.group === groupFilter;
             })
             .filter(guest => {
                 return guest.name.toLowerCase().includes(searchTerm.toLowerCase());
             })
             .sort((a, b) => a.name.localeCompare(b.name));
-    }, [guests, searchTerm, statusFilter, groupFilter]); // Adicionar groupFilter às dependências
+    }, [guests, searchTerm, statusFilter, groupFilter]);
     
-    // Reset to page 1 when filters change
     useEffect(() => {
         setCurrentPage(1);
-    }, [searchTerm, statusFilter, groupFilter]); // Adicionar groupFilter aqui
+        setSelectedGuestIds(new Set()); // Limpar seleção ao mudar filtros
+    }, [searchTerm, statusFilter, groupFilter]);
 
     const totalPages = Math.ceil(filteredGuests.length / ITEMS_PER_PAGE);
 
-    // Adjust current page if it's out of bounds (e.g., after deletion)
     useEffect(() => {
         if (currentPage > totalPages && totalPages > 0) {
             setCurrentPage(totalPages);
@@ -57,6 +58,46 @@ const GuestsScreen: React.FC<GuestsScreenProps> = ({ onAddGuest, onEditGuest, on
         return filteredGuests.slice(startIndex, startIndex + ITEMS_PER_PAGE);
     }, [filteredGuests, currentPage]);
 
+    const handleSelectGuest = (guestId: string, isSelected: boolean) => {
+        setSelectedGuestIds(prev => {
+            const newSet = new Set(prev);
+            if (isSelected) {
+                newSet.add(guestId);
+            } else {
+                newSet.delete(guestId);
+            }
+            return newSet;
+        });
+    };
+
+    const handleSelectAll = (isChecked: boolean) => {
+        setSelectedGuestIds(prev => {
+            const newSet = new Set(prev);
+            if (isChecked) {
+                paginatedGuests.forEach(guest => newSet.add(guest.id));
+            } else {
+                paginatedGuests.forEach(guest => newSet.delete(guest.id));
+            }
+            return newSet;
+        });
+    };
+
+    const isAllPaginatedGuestsSelected = paginatedGuests.length > 0 && paginatedGuests.every(guest => selectedGuestIds.has(guest.id));
+
+    const handleBulkDelete = () => {
+        if (selectedGuestIds.size === 0) return;
+        const guestNames = Array.from(selectedGuestIds).map(id => guests.find(g => g.id === id)?.name).filter(Boolean).join(', ');
+        if (window.confirm(`Tem certeza que deseja excluir os convidados selecionados (${guestNames})? Esta ação não pode ser desfeita.`)) {
+            onDeleteGuest(Array.from(selectedGuestIds));
+            setSelectedGuestIds(new Set());
+        }
+    };
+
+    const handleBulkStatusChange = (newStatus: GuestStatus) => {
+        if (selectedGuestIds.size === 0) return;
+        onChangeGuestsStatus(Array.from(selectedGuestIds), newStatus);
+        setSelectedGuestIds(new Set());
+    };
 
     const handleExportCSV = () => {
         if (guests.length === 0) {
@@ -68,7 +109,7 @@ const GuestsScreen: React.FC<GuestsScreenProps> = ({ onAddGuest, onEditGuest, on
             "Nome",
             "Status",
             "Grupo",
-            "Numero de Acompanhantes", // Ajustado para refletir 'plusOnes'
+            "Numero de Acompanhantes",
             "Telefone",
             "Endereço",
             "Observações"
@@ -86,7 +127,7 @@ const GuestsScreen: React.FC<GuestsScreenProps> = ({ onAddGuest, onEditGuest, on
             escapeCsvField(g.name),
             escapeCsvField(g.status),
             escapeCsvField(g.group),
-            g.plusOnes, // Apenas plusOnes
+            g.plusOnes,
             escapeCsvField(g.phone),
             escapeCsvField(g.address),
             escapeCsvField(g.notes),
@@ -183,8 +224,44 @@ const GuestsScreen: React.FC<GuestsScreenProps> = ({ onAddGuest, onEditGuest, on
                     </select>
                 </div>
 
+                {/* Bulk Actions Bar */}
+                {selectedGuestIds.size > 0 && (
+                    <div className="flex flex-col md:flex-row items-center justify-between p-3 mb-4 bg-brand-pink-light dark:bg-gray-700 rounded-lg shadow-inner">
+                        <span className="text-sm font-semibold text-brand-gray dark:text-gray-200 mb-2 md:mb-0">
+                            {selectedGuestIds.size} convidado(s) selecionado(s)
+                        </span>
+                        <div className="flex items-center space-x-2">
+                            <select
+                                onChange={(e) => handleBulkStatusChange(e.target.value as GuestStatus)}
+                                value="" // Reset select after action
+                                className="p-2 border rounded-md bg-white dark:bg-gray-800 dark:border-gray-600 text-sm"
+                            >
+                                <option value="" disabled>Mudar Status</option>
+                                {Object.values(GuestStatus).map(status => (
+                                    <option key={status} value={status}>{status}</option>
+                                ))}
+                            </select>
+                            <button
+                                onClick={handleBulkDelete}
+                                className="bg-brand-red hover:opacity-90 text-white font-bold py-2 px-4 rounded-lg text-sm transition-colors flex items-center space-x-1"
+                            >
+                                <Icon name="delete" className="text-lg" />
+                                <span>Excluir</span>
+                            </button>
+                        </div>
+                    </div>
+                )}
+
                 {/* Desktop Table Header */}
                 <div className="hidden md:flex px-4 py-3 bg-gray-50 dark:bg-gray-900 rounded-t-lg border-b border-gray-200 dark:border-gray-700 sticky top-0 z-10">
+                    <div className="flex-shrink-0 w-6 mr-3">
+                        <input
+                            type="checkbox"
+                            checked={isAllPaginatedGuestsSelected}
+                            onChange={(e) => handleSelectAll(e.target.checked)}
+                            className="h-4 w-4 rounded border-gray-300 text-brand-gold focus:ring-brand-gold"
+                        />
+                    </div>
                     <div className="flex-1 font-semibold text-sm text-brand-gray-light dark:text-gray-400">Convite</div>
                     <div className="md:w-32 text-center font-semibold text-sm text-brand-gray-light dark:text-gray-400">
                         <Tooltip text="Número de acompanhantes (não inclui o convidado principal)" position="top">
@@ -203,7 +280,9 @@ const GuestsScreen: React.FC<GuestsScreenProps> = ({ onAddGuest, onEditGuest, on
                                 key={guest.id}
                                 guest={guest}
                                 onEdit={() => onEditGuest(guest)}
-                                onDelete={() => onDeleteGuest(guest.id)}
+                                onDelete={() => onDeleteGuest([guest.id])} // Passa um array para deleção individual
+                                isSelected={selectedGuestIds.has(guest.id)}
+                                onSelect={handleSelectGuest}
                             />
                         ))
                     ) : (

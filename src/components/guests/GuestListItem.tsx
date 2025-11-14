@@ -9,13 +9,25 @@ interface GuestListItemProps {
     guest: Guest;
     onEdit: () => void;
     onDelete: () => void;
+    isSelected: boolean; // Nova prop
+    onSelect: (guestId: string, isSelected: boolean) => void; // Nova prop
 }
 
-const GuestListItem: React.FC<GuestListItemProps> = ({ guest, onEdit, onDelete }) => {
+const GuestListItem: React.FC<GuestListItemProps> = ({ guest, onEdit, onDelete, isSelected, onSelect }) => {
     const cleanedPhone = guest.phone ? cleanPhoneNumber(guest.phone) : '';
 
     return (
         <div className="px-4 py-3 flex flex-col md:flex-row md:items-center hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+            {/* Checkbox para seleção */}
+            <div className="flex-shrink-0 mr-3">
+                <input
+                    type="checkbox"
+                    checked={isSelected}
+                    onChange={(e) => onSelect(guest.id, e.target.checked)}
+                    className="h-4 w-4 rounded border-gray-300 text-brand-gold focus:ring-brand-gold"
+                />
+            </div>
+
             {/* Col 1: Nome e Grupo */}
             <div className="flex-1 mb-3 md:mb-0">
                 <p className="font-bold text-brand-gray dark:text-white flex items-center">
@@ -52,7 +64,6 @@ const GuestListItem: React.FC<GuestListItemProps> = ({ guest, onEdit, onDelete }
             <div className="md:w-40 flex justify-between items-center md:justify-center">
                 <span className="md:hidden text-sm font-semibold text-brand-gray-light">Ações</span>
                 <div className="flex items-center space-x-1">
-                    {/* Botão de ligar removido */}
                     <Tooltip text="Enviar WhatsApp" position="top">
                         <a
                             href={`https://wa.me/55${cleanedPhone}`}

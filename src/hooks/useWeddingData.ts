@@ -1,6 +1,5 @@
 import { useState, useMemo, useCallback, useEffect } from 'react';
 import { differenceInDays, isPast } from 'date-fns';
-// FIX: Imported GuestStatus to resolve reference errors.
 import { WeddingData, Vendor, Payment, Task, Guest, PaymentStatus, VendorStatus, Parcel, PaymentNotification, NewVendorFormData, EditVendorData, Addendum, NextPayment, GuestFormData, GuestStatus, Gift, GiftFormData } from '../types';
 import { MOCK_WEDDING_DATA, MOCK_VENDORS, MOCK_PAYMENTS, MOCK_TASKS, MOCK_GUESTS, MOCK_GIFTS } from '../constants';
 import { getPaymentNotifications } from '../notifications';
@@ -261,9 +260,18 @@ export const useWeddingData = () => {
         }));
     }, []);
 
-    const handleDeleteGuest = useCallback((guestId: string) => {
-        setGuests(prev => prev.filter(g => g.id !== guestId));
-        setGifts(prev => prev.filter(gift => gift.guestId !== guestId));
+    const handleDeleteGuest = useCallback((guestIds: string[]) => {
+        setGuests(prev => prev.filter(g => !guestIds.includes(g.id)));
+        setGifts(prev => prev.filter(gift => !guestIds.includes(gift.guestId)));
+    }, []);
+
+    const handleChangeGuestsStatus = useCallback((guestIds: string[], newStatus: GuestStatus) => {
+        setGuests(prev => prev.map(g => {
+            if (guestIds.includes(g.id)) {
+                return { ...g, status: newStatus };
+            }
+            return g;
+        }));
     }, []);
 
     const handleUpdateGift = useCallback((giftId: string, data: GiftFormData) => {
@@ -309,6 +317,7 @@ export const useWeddingData = () => {
         handleAddGuest,
         handleEditGuest,
         handleDeleteGuest,
+        handleChangeGuestsStatus,
         handleUpdateGift,
         handleToggleThankYouSent,
     };

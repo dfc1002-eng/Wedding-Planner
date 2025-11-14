@@ -17,7 +17,7 @@ import AddEditGuestModal from './src/components/modals/AddEditGuestModal';
 import EditGiftModal from './src/components/modals/EditGiftModal';
 import RegisterPaymentModal from './src/components/modals/RegisterPaymentModal';
 import ThankYouModal from './src/components/modals/ThankYouModal';
-import { Vendor, Payment, VendorStatus, NewVendorFormData, EditVendorData, Guest, GuestFormData, Gift, GiftFormData } from './src/types';
+import { Vendor, Payment, VendorStatus, NewVendorFormData, EditVendorData, Guest, GuestFormData, Gift, GiftFormData, GuestStatus } from './src/types';
 import Toast from './src/components/ui/Toast';
 
 export type Screen = 'dashboard' | 'vendors' | 'payments' | 'checklist' | 'guests' | 'giftList' | 'settings';
@@ -62,6 +62,7 @@ const AppContent: React.FC = () => {
         handleAddGuest,
         handleEditGuest,
         handleDeleteGuest,
+        handleChangeGuestsStatus, // Nova função
         handleUpdateGift,
         handleToggleThankYouSent,
     } = useWedding();
@@ -122,14 +123,14 @@ const AppContent: React.FC = () => {
         });
     };
     
-     const onConfirmDeleteGuest = (guestId: string) => {
+     const onConfirmDeleteGuest = (guestIds: string[]) => { // Alterado para aceitar array
         setConfirmation({
             title: 'Confirmar Exclusão',
-            message: 'Tem certeza que deseja excluir este convidado? Esta ação não pode ser desfeita.',
+            message: `Tem certeza que deseja excluir ${guestIds.length > 1 ? 'estes convidados' : 'este convidado'}? Esta ação não pode ser desfeita.`,
             onConfirm: () => {
-                handleDeleteGuest(guestId);
+                handleDeleteGuest(guestIds);
                 setConfirmation(null);
-                showToast('Convidado excluído com sucesso.');
+                showToast(`${guestIds.length > 1 ? 'Convidados excluídos' : 'Convidado excluído'} com sucesso.`);
             }
         });
     };
@@ -209,6 +210,7 @@ const AppContent: React.FC = () => {
                             onAddGuest={() => setGuestModalOpen(true)}
                             onEditGuest={(guest) => { setEditingGuest(guest); setGuestModalOpen(true); }}
                             onDeleteGuest={onConfirmDeleteGuest}
+                            onChangeGuestsStatus={handleChangeGuestsStatus} // Passando a nova função
                        />;
             case 'giftList':
                 return <GiftListScreen 
