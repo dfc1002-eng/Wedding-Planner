@@ -25,12 +25,27 @@ const Sidebar: React.FC<SidebarProps> = ({ activeScreen, setActiveScreen, isDark
 
     return (
         <aside className={`h-screen sticky top-0 flex flex-col p-4 bg-brand-background dark:bg-gray-800 shadow-md transition-all duration-300 ease-in-out ${isExpanded ? 'w-64' : 'w-20'}`}>
-            <div className={`flex items-center mb-10 h-8 ${isExpanded ? 'justify-start' : 'justify-center'}`}>
+            <div className={`flex items-center mb-4 h-8 ${isExpanded ? 'justify-start' : 'justify-center'}`}>
                 {isExpanded ? (
                     <h1 className="font-title text-2xl text-brand-gold">Wedding Planner</h1>
                 ) : (
                     <Icon name="favorite" className="text-3xl text-brand-gold" />
                 )}
+            </div>
+
+            <div className="mb-6">
+                <Tooltip text={isExpanded ? 'Recolher menu' : 'Expandir menu'} position="right" disabled={isExpanded}>
+                    <button
+                        onClick={toggleSidebar}
+                        className={`flex items-center w-full p-3 rounded-lg text-brand-gray-light hover:bg-brand-pink-light dark:text-gray-400 dark:hover:bg-gray-700 transition-colors ${isExpanded ? 'justify-end' : 'justify-center'}`}
+                        aria-label={isExpanded ? "Recolher menu" : "Expandir menu"}
+                    >
+                        <Icon 
+                            name={isExpanded ? 'chevron_left' : 'chevron_right'} 
+                            className="text-2xl transition-transform duration-300" 
+                        />
+                    </button>
+                </Tooltip>
             </div>
             
             <nav className="flex flex-col space-y-2 flex-grow">
@@ -62,17 +77,6 @@ const Sidebar: React.FC<SidebarProps> = ({ activeScreen, setActiveScreen, isDark
                         {isExpanded && <span className="text-base">{isDarkMode ? 'Modo Claro' : 'Modo Escuro'}</span>}
                     </button>
                 </Tooltip>
-
-                <button
-                    onClick={toggleSidebar}
-                    className="flex items-center w-full p-3 rounded-lg text-brand-gray-light hover:bg-brand-pink-light dark:text-gray-400 dark:hover:bg-gray-700 transition-colors justify-center"
-                    aria-label={isExpanded ? "Recolher menu" : "Expandir menu"}
-                >
-                    <Icon 
-                        name={isExpanded ? 'chevron_left' : 'chevron_right'} 
-                        className="text-2xl transition-transform duration-300" 
-                    />
-                </button>
             </div>
         </aside>
     );
