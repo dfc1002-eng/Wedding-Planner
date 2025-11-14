@@ -61,13 +61,12 @@ const DashboardScreen: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                  <StatCard value={daysLeft} label="Dias Restantes" icon="calendar_month" />
                  <StatCard value={weddingData.guestCount} label="Convidados" icon="people" />
-                 <Tooltip text="Custo estimado por convidado, com base no orçamento total e na estimativa de convidados. (Orçamento Total / N° de Convidados)">
-                    <StatCard 
-                        value={formatCurrency(costPerGuest)} 
-                        label="Custo por Convidado" 
-                        icon="payments"
-                    />
-                 </Tooltip>
+                 {/* Tooltip removido daqui */}
+                <StatCard 
+                    value={formatCurrency(costPerGuest)} 
+                    label="Custo por Convidado" 
+                    icon="payments"
+                />
             </div>
 
             {/* Section 3: Key Info & Progress */}
