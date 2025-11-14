@@ -1,5 +1,3 @@
-
-
 import React from 'react';
 import { Guest, GuestStatus } from '../../types';
 import Icon from '../ui/Icon';
@@ -52,4 +50,44 @@ const GuestListItem: React.FC<GuestListItemProps> = ({ guest, onEdit, onDelete }
 
             {/* Col 4: Ações */}
             <div className="md:w-40 flex justify-between items-center md:justify-center">
-                <span className="
+                <span className="md:hidden text-sm font-semibold text-brand-gray-light">Ações</span>
+                <div className="flex items-center space-x-1">
+                    <Tooltip text="Ligar para o convidado" position="top">
+                        <a
+                            href={`tel:${guest.phone}`}
+                            className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors text-brand-gray-light disabled:opacity-50 disabled:cursor-not-allowed"
+                            aria-label={`Ligar para ${guest.name}`}
+                            disabled={!cleanedPhone}
+                        >
+                            <Icon name="call" className="text-lg" />
+                        </a>
+                    </Tooltip>
+                    <Tooltip text="Enviar WhatsApp" position="top">
+                        <a
+                            href={`https://wa.me/55${cleanedPhone}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors text-brand-gray-light disabled:opacity-50 disabled:cursor-not-allowed"
+                            aria-label={`Enviar WhatsApp para ${guest.name}`}
+                            disabled={!cleanedPhone}
+                        >
+                            <Icon name="whatsapp" className="text-lg" />
+                        </a>
+                    </Tooltip>
+                    <Tooltip text="Editar Convidado" position="top">
+                        <button onClick={onEdit} className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors text-brand-gray-light" aria-label={`Editar ${guest.name}`}>
+                            <Icon name="edit" className="text-lg" />
+                        </button>
+                    </Tooltip>
+                    <Tooltip text="Excluir Convidado" position="top">
+                        <button onClick={onDelete} className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors text-brand-gray-light" aria-label={`Excluir ${guest.name}`}>
+                            <Icon name="delete" className="text-lg" />
+                        </button>
+                    </Tooltip>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+export default GuestListItem;
