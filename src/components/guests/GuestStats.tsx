@@ -45,12 +45,10 @@ const GuestStats: React.FC<GuestStatsProps> = ({ guests }) => {
             <Tooltip text="Soma de convidados confirmados + acompanhantes confirmados. Este é o número para o buffet.">
                 <StatCard icon="person_check" value={stats.totalPeopleConfirmed} label="Pessoas Confirmadas" color="bg-brand-green" />
             </Tooltip>
-            <Tooltip text="Convites que ainda não tiveram resposta de confirmação.">
-                <StatCard icon="hourglass_top" value={stats.pending} label="Pendentes" color="bg-yellow-500" />
-            </Tooltip>
-            <Tooltip text="Convites que foram respondidos com 'Não'.">
-                <StatCard icon="cancel" value={stats.declined} label="Recusaram" color="bg-red-500" />
-            </Tooltip>
+            {/* Tooltip removido do card 'Pendentes' */}
+            <StatCard icon="hourglass_top" value={stats.pending} label="Pendentes" color="bg-yellow-500" />
+            {/* Tooltip removido do card 'Recusaram' */}
+            <StatCard icon="cancel" value={stats.declined} label="Recusaram" color="bg-red-500" />
         </div>
     );
 };
