@@ -1,4 +1,3 @@
-
 import React from 'react';
 import Icon from '../ui/Icon';
 import { Screen } from '../../../App';
@@ -8,9 +7,11 @@ interface SidebarProps {
     setActiveScreen: (screen: Screen) => void;
     isDarkMode: boolean;
     toggleDarkMode: () => void;
+    isSidebarCollapsed: boolean;
+    toggleSidebar: () => void;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ activeScreen, setActiveScreen, isDarkMode, toggleDarkMode }) => {
+const Sidebar: React.FC<SidebarProps> = ({ activeScreen, setActiveScreen, isDarkMode, toggleDarkMode, isSidebarCollapsed, toggleSidebar }) => {
     const navItems = [
         { id: 'dashboard', icon: 'grid_view', label: 'Geral' },
         { id: 'vendors', icon: 'storefront', label: 'Fornecedores' },
@@ -22,9 +23,19 @@ const Sidebar: React.FC<SidebarProps> = ({ activeScreen, setActiveScreen, isDark
     ];
 
     return (
-        <aside className="w-64 bg-brand-background dark:bg-gray-800 h-screen sticky top-0 flex flex-col p-6 shadow-md">
-            <h1 className="font-title text-2xl text-brand-gold mb-10">Wedding Planner</h1>
-            <nav className="flex flex-col space-y-2">
+        <aside className={`bg-brand-background dark:bg-gray-800 h-screen sticky top-0 flex flex-col p-6 shadow-md transition-all duration-300 ${isSidebarCollapsed ? 'w-20' : 'w-64'}`}>
+            <div className="flex items-center justify-between mb-10">
+                {!isSidebarCollapsed && <h1 className="font-title text-2xl text-brand-gold">Wedding Planner</h1>}
+                <button 
+                    onClick={toggleSidebar}
+                    className="p-2 rounded-full hover:bg-brand-pink-light dark:hover:bg-gray-700 transition-colors"
+                    aria-label={isSidebarCollapsed ? "Expandir menu" : "Recolher menu"}
+                >
+                    <Icon name={isSidebarCollapsed ? 'chevron_right' : 'chevron_left'} className="text-2xl text-brand-gray dark:text-gray-300" />
+                </button>
+            </div>
+            
+            <nav className="flex flex-col space-y-2 flex-1">
                 {navItems.map(item => (
                     <button 
                         key={item.id} 
@@ -36,10 +47,11 @@ const Sidebar: React.FC<SidebarProps> = ({ activeScreen, setActiveScreen, isDark
                         }`}
                     >
                         <Icon name={item.icon} className="text-2xl" />
-                        <span className="text-base">{item.label}</span>
+                        {!isSidebarCollapsed && <span className="text-base">{item.label}</span>}
                     </button>
                 ))}
             </nav>
+            
             <div className="mt-auto">
                 <button 
                     onClick={toggleDarkMode}
@@ -47,7 +59,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activeScreen, setActiveScreen, isDark
                     aria-label={isDarkMode ? "Ativar modo claro" : "Ativar modo escuro"}
                 >
                     <Icon name={isDarkMode ? 'light_mode' : 'dark_mode'} className="text-2xl" />
-                    <span className="text-base">{isDarkMode ? 'Modo Claro' : 'Modo Escuro'}</span>
+                    {!isSidebarCollapsed && <span className="text-base">{isDarkMode ? 'Modo Claro' : 'Modo Escuro'}</span>}
                 </button>
             </div>
         </aside>
