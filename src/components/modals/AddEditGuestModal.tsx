@@ -70,7 +70,9 @@ const AddEditGuestModal: React.FC<AddEditGuestModalProps> = ({ isOpen, onClose, 
         
         const dataToSave = { ...formData, phone: cleanPhoneNumber(formData.phone) };
 
-        if (dataToSave.status !== GuestStatus.Confirmed) {
+        // For new guests, confirmedPlusOnes should always be 0.
+        // For existing guests, if status changes from Confirmed, reset confirmedPlusOnes.
+        if (!guest || dataToSave.status !== GuestStatus.Confirmed) {
             dataToSave.confirmedPlusOnes = 0;
         }
 
@@ -135,7 +137,8 @@ const AddEditGuestModal: React.FC<AddEditGuestModalProps> = ({ isOpen, onClose, 
                                         {Object.values(GuestStatus).map(s => <option key={s} value={s}>{s}</option>)}
                                     </select>
                                 </div>
-                                {formData.status === GuestStatus.Confirmed && formData.plusOnes > 0 && (
+                                {/* O campo 'Acompanhantes Confirmados' só é exibido ao EDITAR um convidado existente */}
+                                {guest && formData.status === GuestStatus.Confirmed && formData.plusOnes > 0 && (
                                     <div>
                                         <label htmlFor="confirmedPlusOnes" className="block text-sm font-medium mb-1">Acompanhantes Confirmados</label>
                                         <input id="confirmedPlusOnes" name="confirmedPlusOnes" type="number" min="0" max={formData.plusOnes} value={formData.confirmedPlusOnes} onChange={handleChange} className="w-full p-2 border rounded-md bg-white dark:bg-gray-700 dark:border-gray-600" />
