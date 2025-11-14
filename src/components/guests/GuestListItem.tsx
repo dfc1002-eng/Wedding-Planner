@@ -52,16 +52,7 @@ const GuestListItem: React.FC<GuestListItemProps> = ({ guest, onEdit, onDelete }
             <div className="md:w-40 flex justify-between items-center md:justify-center">
                 <span className="md:hidden text-sm font-semibold text-brand-gray-light">Ações</span>
                 <div className="flex items-center space-x-1">
-                    <Tooltip text="Ligar para o convidado" position="top">
-                        <a
-                            href={`tel:${guest.phone}`}
-                            className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors text-brand-gray-light disabled:opacity-50 disabled:cursor-not-allowed"
-                            aria-label={`Ligar para ${guest.name}`}
-                            disabled={!cleanedPhone}
-                        >
-                            <Icon name="call" className="text-lg" />
-                        </a>
-                    </Tooltip>
+                    {/* Botão de ligar removido */}
                     <Tooltip text="Enviar WhatsApp" position="top">
                         <a
                             href={`https://wa.me/55${cleanedPhone}`}
