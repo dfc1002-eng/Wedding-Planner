@@ -15,7 +15,6 @@ interface GiftListScreenProps {
 const GiftListScreen: React.FC<GiftListScreenProps> = ({ onEditGift, onToggleThankYou, onSendWhatsApp }) => {
     const { gifts, guests } = useWedding();
     const [showUnthankedOnly, setShowUnthankedOnly] = useState(false);
-    const [searchTerm, setSearchTerm] = useState(''); // Novo estado para o termo de busca
     const [currentPage, setCurrentPage] = useState(1);
     const ITEMS_PER_PAGE = 7; // Limitado a 7 itens por página
     
@@ -33,16 +32,13 @@ const GiftListScreen: React.FC<GiftListScreenProps> = ({ onEditGift, onToggleTha
                 if (!showUnthankedOnly) return true;
                 return !gift.thankYouSent;
             })
-            .filter(gift => { // Adiciona filtro por termo de busca
-                return gift.guestName.toLowerCase().includes(searchTerm.toLowerCase());
-            })
             .sort((a, b) => a.guestName.localeCompare(b.guestName));
-    }, [gifts, showUnthankedOnly, searchTerm]); // Adiciona searchTerm como dependência
+    }, [gifts, showUnthankedOnly]);
 
-    // Reset to page 1 when filters or search term change
+    // Reset to page 1 when filters change
     useEffect(() => {
         setCurrentPage(1);
-    }, [showUnthankedOnly, searchTerm]); // Adiciona searchTerm como dependência
+    }, [showUnthankedOnly]);
 
     const totalPages = Math.ceil(filteredGifts.length / ITEMS_PER_PAGE);
 
@@ -100,29 +96,16 @@ const GiftListScreen: React.FC<GiftListScreenProps> = ({ onEditGift, onToggleTha
             </div>
 
             <div className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-md">
-                <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-4">
-                    {/* Search Input */}
-                    <div className="relative w-full md:max-w-xs">
-                        <Icon name="search" className="absolute left-3 top-1/2 -translate-y-1/2 text-brand-gray-light" />
-                        <input
-                            type="text"
-                            placeholder="Buscar presente..."
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full p-2 pl-10 border rounded-md bg-white dark:bg-gray-700 dark:border-gray-600 focus:ring-brand-gold focus:border-brand-gold"
+                <div className="flex justify-end items-center mb-4">
+                     <label className="flex items-center cursor-pointer">
+                        <input 
+                            type="checkbox" 
+                            checked={showUnthankedOnly} 
+                            onChange={() => setShowUnthankedOnly(!showUnthankedOnly)}
+                            className="h-4 w-4 rounded border-gray-300 text-brand-gold focus:ring-brand-gold"
                         />
-                    </div>
-                    <div className="flex justify-end items-center">
-                        <label className="flex items-center cursor-pointer">
-                            <input 
-                                type="checkbox" 
-                                checked={showUnthankedOnly} 
-                                onChange={() => setShowUnthankedOnly(!showUnthankedOnly)}
-                                className="h-4 w-4 rounded border-gray-300 text-brand-gold focus:ring-brand-gold"
-                            />
-                            <span className="ml-2 text-sm font-medium">Mostrar apenas não agradecidos</span>
-                        </label>
-                    </div>
+                        <span className="ml-2 text-sm font-medium">Mostrar apenas não agradecidos</span>
+                    </label>
                 </div>
 
                 {/* Table Header */}
