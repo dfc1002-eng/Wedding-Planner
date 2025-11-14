@@ -39,7 +39,7 @@ const GuestStats: React.FC<GuestStatsProps> = ({ guests }) => {
             <Tooltip text="Soma de todos os convidados cadastrados mais todos os seus acompanhantes convidados. Representa o número máximo de pessoas esperadas.">
                 <StatCard icon="supervisor_account" value={stats.totalPotentialPeople} label="Estimativa Total" color="bg-purple-500" />
             </Tooltip>
-            <Tooltip text="Número total de convites (unidades/famílias) que foram cadastrados.">
+            <Tooltip text="Número total de convites">
                 <StatCard icon="groups" value={stats.totalGuests} label="Convites Enviados" color="bg-blue-500" />
             </Tooltip>
             <Tooltip text="Soma de convidados confirmados + acompanhantes confirmados. Este é o número para o buffet.">
