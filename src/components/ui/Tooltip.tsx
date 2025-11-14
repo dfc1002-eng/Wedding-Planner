@@ -31,7 +31,7 @@ const Tooltip: React.FC<TooltipProps> = ({ text, children, position = 'top', dis
 
   return (
     <div 
-      className="relative flex w-full"
+      className="relative flex w-full h-full" // Adicionado h-full aqui
       onMouseEnter={() => setIsVisible(true)}
       onMouseLeave={() => setIsVisible(false)}
       onFocus={() => setIsVisible(true)}
