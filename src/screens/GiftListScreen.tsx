@@ -127,7 +127,7 @@ const GiftListScreen: React.FC<GiftListScreenProps> = ({ onEditGift, onToggleTha
                 <div className="hidden md:flex px-4 py-3 bg-gray-50 dark:bg-gray-900 rounded-t-lg border-b border-gray-200 dark:border-gray-700 sticky top-0 z-10">
                     <div className="w-full md:w-5/12 font-semibold text-sm text-brand-gray-light dark:text-gray-400">Convidado / Presente</div>
                     <div className="w-full md:w-2/12 text-center font-semibold text-sm text-brand-gray-light dark:text-gray-400">Valor</div>
-                    <div className="w-full md:w-2/12 text-center font-semibold text-sm text-brand-gray-light dark:text-gray-400">Status</div>
+                    <div className="w-full md:w-2/12 text-center font-semibold text-sm text-brand-gray-light dark:text-gray-400">Presente recebido</div> {/* Alterado aqui */}
                     <div className="w-full md:w-3/12 text-center font-semibold text-sm text-brand-gray-light dark:text-gray-400">Ações</div>
                 </div>
 
