@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { WeddingDataProvider, useWedding } from './src/context/WeddingDataContext';
 
@@ -6,6 +7,7 @@ import Header from './src/components/layout/Header';
 import DashboardScreen from './src/screens/DashboardScreen';
 import VendorsScreen from './src/screens/VendorsScreen';
 import PaymentsScreen from './src/screens/PaymentsScreen';
+import ChecklistScreen from './src/screens/ChecklistScreen';
 import GuestsScreen from './src/screens/GuestsScreen';
 import GiftListScreen from './src/screens/GiftListScreen';
 import SettingsScreen from './src/screens/SettingsScreen';
@@ -19,7 +21,7 @@ import ThankYouModal from './src/components/modals/ThankYouModal';
 import { Vendor, Payment, VendorStatus, NewVendorFormData, EditVendorData, Guest, GuestFormData, Gift, GiftFormData } from './src/types';
 import Toast from './src/components/ui/Toast';
 
-export type Screen = 'dashboard' | 'vendors' | 'payments' | 'guests' | 'giftList' | 'settings';
+export type Screen = 'dashboard' | 'vendors' | 'payments' | 'checklist' | 'guests' | 'giftList' | 'settings';
 
 const AppContent: React.FC = () => {
     const [activeScreen, setActiveScreen] = useState<Screen>('dashboard');
@@ -42,7 +44,9 @@ const AppContent: React.FC = () => {
         weddingData, 
         vendors,
         payments,
+        tasks,
         paymentNotifications,
+        handleToggleTask,
         handleAddVendor,
         handleEditVendor,
         handleDeleteVendor,
@@ -72,6 +76,15 @@ const AppContent: React.FC = () => {
     const showToast = (message: string, type: 'success' | 'error' = 'success') => {
         setToast({ id: Date.now(), message, type });
     };
+    
+    const onToggleTask = (taskId: string) => {
+        const wasCompleted = handleToggleTask(taskId);
+        const task = tasks.find(t => t.id === taskId);
+        if (wasCompleted && task?.createsVendorCategory) {
+            setPrefilledCategory(task.createsVendorCategory);
+            setAddVendorModalOpen(true);
+        }
+    }
 
     const onConfirmDeleteVendor = (vendorId: string) => {
         setConfirmation({
@@ -177,6 +190,8 @@ const AppContent: React.FC = () => {
                            onRegisterPayment={onRegisterPayment}
                            onDeletePayment={onConfirmDeletePayment}
                        />;
+            case 'checklist':
+                return <ChecklistScreen onToggleTask={onToggleTask} />;
             case 'guests':
                 return <GuestsScreen 
                             onAddGuest={() => setGuestModalOpen(true)}
