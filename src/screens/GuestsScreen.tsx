@@ -169,22 +169,20 @@ const GuestsScreen: React.FC<GuestsScreenProps> = ({ onAddGuest, onEditGuest, on
                     </div>
                 </div>
 
-                {/* Filter Buttons for Groups */}
-                <div className="flex flex-wrap items-center gap-2 mb-4">
-                    <span className="text-sm font-medium text-brand-gray-light dark:text-gray-400">Grupos:</span>
-                    {(['all', ...GUEST_GROUPS] as const).map(group => (
-                        <button
-                            key={group}
-                            onClick={() => setGroupFilter(group)}
-                            className={`px-3 py-1 text-sm font-semibold rounded-full transition-all duration-200 ease-in-out ${
-                                groupFilter === group
-                                    ? 'bg-brand-gold text-white shadow-md'
-                                    : 'bg-white dark:bg-gray-700 text-brand-gray dark:text-gray-300 hover:bg-brand-pink-light dark:hover:bg-gray-600'
-                            }`}
-                        >
-                            {group === 'all' ? 'Todos' : group}
-                        </button>
-                    ))}
+                {/* Dropdown for Groups */}
+                <div className="mb-4">
+                    <label htmlFor="groupFilter" className="block text-sm font-medium text-brand-gray-light dark:text-gray-400 mb-1">Filtrar por Grupo:</label>
+                    <select
+                        id="groupFilter"
+                        value={groupFilter}
+                        onChange={(e) => setGroupFilter(e.target.value)}
+                        className="w-full md:w-auto p-2 border rounded-md bg-white dark:bg-gray-700 dark:border-gray-600 focus:ring-brand-gold focus:border-brand-gold"
+                    >
+                        <option value="all">Todos os Grupos</option>
+                        {GUEST_GROUPS.map(group => (
+                            <option key={group} value={group}>{group}</option>
+                        ))}
+                    </select>
                 </div>
 
                 {/* Desktop Table Header */}
