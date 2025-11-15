@@ -1,8 +1,11 @@
+"use client";
+
 import { useState, useMemo, useCallback, useEffect } from 'react';
 import { differenceInDays, isPast } from 'date-fns';
 import { WeddingData, Vendor, Payment, Task, Guest, PaymentStatus, VendorStatus, Parcel, PaymentNotification, NewVendorFormData, EditVendorData, Addendum, NextPayment, GuestFormData, GuestStatus, Gift, GiftFormData } from '../types';
 import { MOCK_WEDDING_DATA, MOCK_VENDORS, MOCK_PAYMENTS, MOCK_TASKS, MOCK_GUESTS, MOCK_GIFTS } from '../constants';
 import { getPaymentNotifications } from '../notifications';
+import { createPaymentsFromParcels } from '../utils'; // Importar a nova função
 
 export const useWeddingData = () => {
     const [weddingData, setWeddingData] = useState<WeddingData>(MOCK_WEDDING_DATA);
@@ -29,7 +32,7 @@ export const useWeddingData = () => {
             }
 
             const vendorPaymentsMap: Record<string, Payment[]> = updatedPayments.reduce((acc, p) => {
-                if (!acc[p.vendorId]) acc[p.vendorId] = [];
+                if (!acc[p.vendorId]) acc[p[p.vendorId]] = [];
                 acc[p.vendorId].push(p);
                 return acc;
             }, {} as Record<string, Payment[]>);
@@ -131,19 +134,7 @@ export const useWeddingData = () => {
             status: VendorStatus.Planned,
         };
         
-        const newPayments: Payment[] = [];
-        if (data.parcels) {
-            data.parcels.forEach(parcel => {
-                const dueDate = new Date(parcel.dueDate + 'T00:00:00');
-                 newPayments.push({
-                    id: crypto.randomUUID(),
-                    vendorId: newVendor.id,
-                    parcelValue: parcel.amount,
-                    dueDate: dueDate,
-                    status: isPast(dueDate) ? PaymentStatus.Overdue : PaymentStatus.Open,
-                });
-            });
-        }
+        const newPayments: Payment[] = data.parcels ? createPaymentsFromParcels(newVendor.id, data.parcels) : [];
 
         setVendors(prev => [...prev, newVendor]);
         setPayments(prev => [...prev, ...newPayments]);
@@ -168,16 +159,7 @@ export const useWeddingData = () => {
                     };
                     updatedVendor.addendums = [...(v.addendums || []), newAddendum];
                     
-                    data.addendumParcels.forEach(parcel => {
-                        const dueDate = new Date(parcel.dueDate + 'T00:00:00');
-                        newPaymentsForAddendum.push({
-                            id: crypto.randomUUID(),
-                            vendorId: data.id,
-                            parcelValue: parcel.amount,
-                            dueDate: dueDate,
-                            status: isPast(dueDate) ? PaymentStatus.Overdue : PaymentStatus.Open,
-                        });
-                    });
+                    newPaymentsForAddendum = createPaymentsFromParcels(data.id, data.addendumParcels);
                 }
                 return updatedVendor;
             }

@@ -1,8 +1,11 @@
+"use client";
+
 import React, { useState, useEffect } from 'react';
 import { VENDOR_CATEGORIES } from '../../constants';
 import Icon from '../ui/Icon';
 import PaymentSetup from '../vendors/PaymentSetup';
 import { NewVendorFormData, Parcel } from '../../types';
+import FormField from '../ui/FormField'; // Importar FormField
 
 interface AddVendorModalProps {
     onClose: () => void;
@@ -54,33 +57,51 @@ const AddVendorModal: React.FC<AddVendorModalProps> = ({ onClose, onSave, prefil
                         </div>
                         
                         <div className="space-y-4">
-                             <div>
-                                <label htmlFor="name" className="block text-sm font-medium mb-1">Nome do Fornecedor</label>
-                                <input id="name" type="text" value={name} onChange={(e) => setName(e.target.value)} required className="w-full p-2 border rounded-md bg-white dark:bg-gray-700 dark:border-gray-600" />
-                            </div>
+                            <FormField
+                                id="name"
+                                label="Nome do Fornecedor"
+                                type="text"
+                                value={name}
+                                onChange={(e) => setName(e.target.value)}
+                                required
+                            />
                            
-                            <div>
-                                <label htmlFor="category" className="block text-sm font-medium mb-1">Categoria</label>
-                                <select id="category" value={category} onChange={(e) => setCategory(e.target.value)} className="w-full p-2 border rounded-md bg-white dark:bg-gray-700 dark:border-gray-600">
-                                    {VENDOR_CATEGORIES.map(cat => <option key={cat} value={cat}>{cat}</option>)}
-                                </select>
-                            </div>
+                            <FormField
+                                id="category"
+                                label="Categoria"
+                                type="select"
+                                value={category}
+                                onChange={(e) => setCategory(e.target.value)}
+                                options={VENDOR_CATEGORIES.map(cat => ({ value: cat, label: cat }))}
+                            />
 
                             <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label htmlFor="phone" className="block text-sm font-medium mb-1">Telefone (Opcional)</label>
-                                    <input id="phone" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} className="w-full p-2 border rounded-md bg-white dark:bg-gray-700 dark:border-gray-600" />
-                                </div>
-                                <div>
-                                    <label htmlFor="email" className="block text-sm font-medium mb-1">Email (Opcional)</label>
-                                    <input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full p-2 border rounded-md bg-white dark:bg-gray-700 dark:border-gray-600" />
-                                </div>
+                                <FormField
+                                    id="phone"
+                                    label="Telefone (Opcional)"
+                                    type="tel"
+                                    value={phone}
+                                    onChange={(e) => setPhone(e.target.value)}
+                                />
+                                <FormField
+                                    id="email"
+                                    label="Email (Opcional)"
+                                    type="email"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                />
                             </div>
 
-                            <div>
-                                <label htmlFor="contractedValue" className="block text-sm font-medium mb-1">Valor Total do Contrato (R$)</label>
-                                <input type="number" id="contractedValue" value={contractedValue} onChange={(e) => setContractedValue(parseFloat(e.target.value) || 0)} required min="0" step="0.01" className="w-full p-2 border rounded-md bg-white dark:bg-gray-700 dark:border-gray-600" />
-                            </div>
+                            <FormField
+                                id="contractedValue"
+                                label="Valor Total do Contrato (R$)"
+                                type="number"
+                                value={contractedValue}
+                                onChange={(e) => setContractedValue(parseFloat(e.target.value) || 0)}
+                                required
+                                min="0"
+                                step="0.01"
+                            />
 
                             <PaymentSetup
                                 contractedValue={contractedValue}

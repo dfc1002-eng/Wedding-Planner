@@ -1,8 +1,9 @@
+"use client";
 
 import React, { useState, useEffect } from 'react';
 import { Gift, GiftFormData } from '../../types';
-import { formatCurrency } from '../../utils';
 import Icon from '../ui/Icon';
+import FormField from '../ui/FormField'; // Importar FormField
 
 interface EditGiftModalProps {
     gift: Gift;
@@ -42,32 +43,27 @@ const EditGiftModal: React.FC<EditGiftModalProps> = ({ gift, onClose, onSave }) 
                         </div>
                         
                         <div className="space-y-4">
-                            <div>
-                                <label htmlFor="amount" className="block text-sm font-medium mb-1">Valor do Presente (R$)</label>
-                                <input 
-                                    id="amount" 
-                                    type="number" 
-                                    value={amount} 
-                                    onChange={(e) => setAmount(parseFloat(e.target.value) || 0)} 
-                                    required 
-                                    min="0" 
-                                    step="0.01" 
-                                    className="w-full p-2 border rounded-md bg-white dark:bg-gray-700 dark:border-gray-600"
-                                />
-                            </div>
+                            <FormField
+                                id="amount"
+                                label="Valor do Presente (R$)"
+                                type="number"
+                                value={amount}
+                                onChange={(e) => setAmount(parseFloat(e.target.value) || 0)}
+                                required
+                                min="0"
+                                step="0.01"
+                            />
                            
-                            <div>
-                                <label htmlFor="description" className="block text-sm font-medium mb-1">Descrição / Observações</label>
-                                <textarea 
-                                    id="description" 
-                                    value={description} 
-                                    onChange={(e) => setDescription(e.target.value)} 
-                                    rows={3}
-                                    className="w-full p-2 border rounded-md bg-white dark:bg-gray-700 dark:border-gray-600"
-                                    placeholder="Ex: Dinheiro via Pix, Jogo de Jantar, Cotas de Lua de Mel..."
-                                    required
-                                ></textarea>
-                            </div>
+                            <FormField
+                                id="description"
+                                label="Descrição / Observações"
+                                type="textarea"
+                                value={description}
+                                onChange={(e) => setDescription(e.target.value)}
+                                rows={3}
+                                placeholder="Ex: Dinheiro via Pix, Jogo de Jantar, Cotas de Lua de Mel..."
+                                required
+                            />
 
                             <div className="flex items-center">
                                 <input 

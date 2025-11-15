@@ -1,3 +1,4 @@
+"use client";
 
 import React, { useState } from 'react';
 import { Vendor, Payment } from '../../types';
@@ -5,6 +6,7 @@ import { formatCurrency } from '../../utils';
 import { format as formatDate } from 'date-fns';
 import { ptBR } from 'date-fns/locale/pt-BR';
 import Icon from '../ui/Icon';
+import FormField from '../ui/FormField'; // Importar FormField
 
 interface RegisterPaymentModalProps {
   modalData: { vendor: Vendor; payment: Payment };
@@ -52,14 +54,12 @@ const RegisterPaymentModal: React.FC<RegisterPaymentModalProps> = ({ modalData, 
                 </div>
 
                 <div className="mt-6 text-left">
-                    <label htmlFor="paymentDate" className="block text-sm font-medium mb-2 text-brand-gray dark:text-gray-200">Data em que o pagamento foi realizado</label>
-                    <input
-                        type="date"
+                    <FormField
                         id="paymentDate"
-                        name="paymentDate"
+                        label="Data em que o pagamento foi realizado"
+                        type="date"
                         value={paymentDate}
                         onChange={(e) => setPaymentDate(e.target.value)}
-                        className="w-full p-2 border rounded-md bg-white dark:bg-gray-700 dark:border-gray-600 focus:ring-brand-gold focus:border-brand-gold"
                         required
                     />
                 </div>

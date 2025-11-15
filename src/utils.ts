@@ -1,5 +1,5 @@
-
-import { VendorStatus, PaymentStatus, GuestStatus, ThankYouStatus } from './types';
+import { VendorStatus, PaymentStatus, GuestStatus, ThankYouStatus, Parcel, Payment } from './types';
+import { isPast } from 'date-fns';
 
 export const formatCurrency = (value: number): string => {
   return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
@@ -73,4 +73,17 @@ export const getCategoryIcon = (category: string): string => {
         default:
             return 'category';
     }
+};
+
+export const createPaymentsFromParcels = (vendorId: string, parcels: Parcel[]): Payment[] => {
+    return parcels.map(parcel => {
+        const dueDate = new Date(parcel.dueDate + 'T00:00:00');
+        return {
+            id: crypto.randomUUID(),
+            vendorId: vendorId,
+            parcelValue: parcel.amount,
+            dueDate: dueDate,
+            status: isPast(dueDate) ? PaymentStatus.Overdue : PaymentStatus.Open,
+        };
+    });
 };

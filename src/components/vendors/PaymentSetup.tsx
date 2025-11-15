@@ -1,9 +1,12 @@
+"use client";
+
 import React, { useState, useEffect, useMemo } from 'react';
 import { useWedding } from '../../context/WeddingDataContext';
 import { format as formatDate, addDays } from 'date-fns';
 import { formatCurrency } from '../../utils';
 import Icon from '../ui/Icon';
 import { Parcel } from '../../types';
+import FormField from '../ui/FormField'; // Importar FormField
 
 type PaymentMode = 'single' | 'two-installments' | 'custom';
 
@@ -77,22 +80,26 @@ const PaymentSetup: React.FC<PaymentSetupProps> = ({ contractedValue, onParcelsC
         <div className="space-y-3 max-h-48 overflow-y-auto pr-2">
             {parcels.map((parcel, index) => (
                 <div key={parcel.id} className="grid grid-cols-2 gap-3 items-center">
-                    <input
+                    <FormField
+                        id={`parcel-date-${index}`}
+                        label="" // Label is empty as it's part of a group
                         type="date"
                         value={parcel.dueDate}
                         onChange={(e) => handleParcelChange(index, 'dueDate', e.target.value)}
-                        className="w-full p-2 border rounded-md bg-white dark:bg-gray-700 dark:border-gray-600"
                         required
+                        labelClassName="sr-only" // Hide label visually
                     />
-                    <input
+                    <FormField
+                        id={`parcel-amount-${index}`}
+                        label="" // Label is empty as it's part of a group
                         type="number"
                         min="0"
                         step="0.01"
                         value={parcel.amount}
                         onChange={(e) => handleParcelChange(index, 'amount', e.target.value)}
-                        className="w-full p-2 border rounded-md bg-white dark:bg-gray-700 dark:border-gray-600"
                         placeholder="Valor (R$)"
                         required
+                        labelClassName="sr-only" // Hide label visually
                     />
                 </div>
             ))}
@@ -123,17 +130,15 @@ const PaymentSetup: React.FC<PaymentSetupProps> = ({ contractedValue, onParcelsC
             <div className="mt-4">
                 {paymentMode === 'custom' && (
                     <div className="mb-4 grid grid-cols-2 gap-4 items-end">
-                         <div>
-                            <label htmlFor="installments" className="block text-xs font-medium mb-1">Nº de Parcelas</label>
-                            <input
-                                type="number"
-                                id="installments"
-                                value={customInstallmentCount}
-                                min="2"
-                                onChange={(e) => handleCustomInstallmentCountChange(parseInt(e.target.value) || 2)}
-                                className="w-full p-2 border rounded-md bg-white dark:bg-gray-700 dark:border-gray-600"
-                            />
-                        </div>
+                         <FormField
+                            id="installments"
+                            label="Nº de Parcelas"
+                            type="number"
+                            value={customInstallmentCount}
+                            min="2"
+                            onChange={(e) => handleCustomInstallmentCountChange(parseInt(e.target.value) || 2)}
+                            labelClassName="block text-xs font-medium mb-1"
+                        />
                         <button type="button" onClick={handleDivideEqually} className="py-2 px-4 text-sm rounded-lg text-brand-gray dark:text-gray-300 bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500 flex items-center justify-center space-x-2">
                            <Icon name="splitscreen" className="text-base" /> <span>Dividir Valor Igualmente</span>
                         </button>

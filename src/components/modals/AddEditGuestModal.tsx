@@ -1,8 +1,11 @@
+"use client";
+
 import React, { useState, useEffect } from 'react';
 import { Guest, GuestStatus, GuestFormData } from '../../types';
 import { GUEST_GROUPS } from '../../constants';
 import { formatPhoneNumber, cleanPhoneNumber } from '../../utils';
 import Icon from '../ui/Icon';
+import FormField from '../ui/FormField'; // Importar FormField
 
 interface AddEditGuestModalProps {
     isOpen: boolean;
@@ -20,9 +23,9 @@ const AddEditGuestModal: React.FC<AddEditGuestModalProps> = ({ isOpen, onClose, 
         plusOnes: 0,
         notes: '',
         status: GuestStatus.Pending,
-        // confirmedPlusOnes: 0, // Removido
     });
     const [isPhoneValid, setIsPhoneValid] = useState(false);
+    const [phoneError, setPhoneError] = useState<string | undefined>(undefined);
 
     useEffect(() => {
         if (guest) {
@@ -34,19 +37,25 @@ const AddEditGuestModal: React.FC<AddEditGuestModalProps> = ({ isOpen, onClose, 
                 plusOnes: guest.plusOnes,
                 notes: guest.notes,
                 status: guest.status,
-                // confirmedPlusOnes: guest.confirmedPlusOnes || 0, // Removido
             });
         } else {
             // Reset form for new guest
             setFormData({
                 name: '', phone: '', address: '', group: GUEST_GROUPS[0], plusOnes: 0,
-                notes: '', status: GuestStatus.Pending, // confirmedPlusOnes: 0, // Removido
+                notes: '', status: GuestStatus.Pending,
             });
         }
     }, [guest, isOpen]);
     
     useEffect(() => {
-        setIsPhoneValid(cleanPhoneNumber(formData.phone).length >= 10);
+        const cleaned = cleanPhoneNumber(formData.phone);
+        if (formData.phone && cleaned.length < 10) {
+            setIsPhoneValid(false);
+            setPhoneError('Telefone deve ter pelo menos 10 dígitos.');
+        } else {
+            setIsPhoneValid(true);
+            setPhoneError(undefined);
+        }
     }, [formData.phone]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
@@ -55,7 +64,7 @@ const AddEditGuestModal: React.FC<AddEditGuestModalProps> = ({ isOpen, onClose, 
         if (name === 'phone') {
             const formattedPhone = formatPhoneNumber(value);
             setFormData(prev => ({ ...prev, phone: formattedPhone }));
-        } else if (name === 'plusOnes') { // 'confirmedPlusOnes' removido
+        } else if (name === 'plusOnes') {
             const numValue = parseInt(value, 10) || 0;
             setFormData(prev => ({ ...prev, [name]: numValue }));
         }
@@ -66,14 +75,9 @@ const AddEditGuestModal: React.FC<AddEditGuestModalProps> = ({ isOpen, onClose, 
     
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        if (!isPhoneValid) return;
+        if (!isPhoneValid || !formData.name) return;
         
         const dataToSave = { ...formData, phone: cleanPhoneNumber(formData.phone) };
-
-        // A lógica de confirmedPlusOnes foi removida, pois o status do convidado principal se aplica a todos.
-        // Se o status for 'Confirmado', todos os acompanhantes são considerados confirmados.
-        // Se o status não for 'Confirmado', nenhum acompanhante é considerado confirmado individualmente.
-
         onSave(dataToSave);
     };
 
@@ -95,47 +99,73 @@ const AddEditGuestModal: React.FC<AddEditGuestModalProps> = ({ isOpen, onClose, 
 
                         <div className="space-y-4">
                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div>
-                                    <label htmlFor="name" className="block text-sm font-medium mb-1">Nome Completo *</label>
-                                    <input id="name" name="name" type="text" value={formData.name} onChange={handleChange} required className="w-full p-2 border rounded-md bg-white dark:bg-gray-700 dark:border-gray-600" />
-                                </div>
-                                <div>
-                                    <label htmlFor="phone" className="block text-sm font-medium mb-1">Telefone *</label>
-                                    <input id="phone" name="phone" type="tel" value={formData.phone} onChange={handleChange} required maxLength={15} className={`w-full p-2 border rounded-md bg-white dark:bg-gray-700 dark:border-gray-600 ${!isPhoneValid && formData.phone ? 'border-red-500' : ''}`} />
-                                </div>
+                                <FormField
+                                    id="name"
+                                    label="Nome Completo"
+                                    type="text"
+                                    value={formData.name}
+                                    onChange={handleChange}
+                                    required
+                                />
+                                <FormField
+                                    id="phone"
+                                    label="Telefone"
+                                    type="tel"
+                                    value={formData.phone}
+                                    onChange={handleChange}
+                                    required
+                                    error={phoneError}
+                                    inputClassName={!isPhoneValid && formData.phone ? 'border-red-500' : ''}
+                                />
                             </div>
                             
-                            <div>
-                                <label htmlFor="address" className="block text-sm font-medium mb-1">Endereço *</label>
-                                <input id="address" name="address" type="text" value={formData.address} onChange={handleChange} required className="w-full p-2 border rounded-md bg-white dark:bg-gray-700 dark:border-gray-600" />
-                            </div>
+                            <FormField
+                                id="address"
+                                label="Endereço"
+                                type="text"
+                                value={formData.address}
+                                onChange={handleChange}
+                                required
+                            />
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div>
-                                    <label htmlFor="group" className="block text-sm font-medium mb-1">Grupo</label>
-                                    <select id="group" name="group" value={formData.group} onChange={handleChange} className="w-full p-2 border rounded-md bg-white dark:bg-gray-700 dark:border-gray-600">
-                                        {GUEST_GROUPS.map(g => <option key={g} value={g}>{g}</option>)}
-                                    </select>
-                                </div>
-                                 <div>
-                                    <label htmlFor="plusOnes" className="block text-sm font-medium mb-1">Qtd. de Acompanhantes</label>
-                                    <input id="plusOnes" name="plusOnes" type="number" min="0" value={formData.plusOnes} onChange={handleChange} className="w-full p-2 border rounded-md bg-white dark:bg-gray-700 dark:border-gray-600" />
-                                </div>
+                                <FormField
+                                    id="group"
+                                    label="Grupo"
+                                    type="select"
+                                    value={formData.group}
+                                    onChange={handleChange}
+                                    options={GUEST_GROUPS.map(g => ({ value: g, label: g }))}
+                                />
+                                <FormField
+                                    id="plusOnes"
+                                    label="Qtd. de Acompanhantes"
+                                    type="number"
+                                    value={formData.plusOnes}
+                                    onChange={handleChange}
+                                    min="0"
+                                />
                             </div>
                             
-                            <div>
-                               <label htmlFor="notes" className="block text-sm font-medium mb-1">Observações / Tipo de Convite</label>
-                               <textarea id="notes" name="notes" value={formData.notes} onChange={handleChange} rows={3} className="w-full p-2 border rounded-md bg-white dark:bg-gray-700 dark:border-gray-600" placeholder="Ex: 'Minha amada irmã Juliana', 'Alergia a glúten'"></textarea>
-                            </div>
+                            <FormField
+                                id="notes"
+                                label="Observações / Tipo de Convite"
+                                type="textarea"
+                                value={formData.notes}
+                                onChange={handleChange}
+                                rows={3}
+                                placeholder="Ex: 'Minha amada irmã Juliana', 'Alergia a glúten'"
+                            />
                             
                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div>
-                                    <label htmlFor="status" className="block text-sm font-medium mb-1">Confirmação de Presença</label>
-                                    <select id="status" name="status" value={formData.status} onChange={handleChange} className="w-full p-2 border rounded-md bg-white dark:bg-gray-700 dark:border-gray-600">
-                                        {Object.values(GuestStatus).map(s => <option key={s} value={s}>{s}</option>)}
-                                    </select>
-                                </div>
-                                {/* O campo 'Acompanhantes Confirmados' foi removido, pois o status do convidado principal se aplica a todos. */}
+                                <FormField
+                                    id="status"
+                                    label="Confirmação de Presença"
+                                    type="select"
+                                    value={formData.status}
+                                    onChange={handleChange}
+                                    options={Object.values(GuestStatus).map(s => ({ value: s, label: s }))}
+                                />
                              </div>
                         </div>
                     </div>

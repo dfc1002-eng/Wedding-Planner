@@ -1,9 +1,11 @@
-// FIX: Created the full component content for EditVendorModal, which was missing.
+"use client";
+
 import React, { useState, useEffect } from 'react';
 import { Vendor, EditVendorData, Parcel, Payment } from '../../types';
 import { VENDOR_CATEGORIES } from '../../constants';
 import Icon from '../ui/Icon';
 import PaymentSetup from '../vendors/PaymentSetup';
+import FormField from '../ui/FormField'; // Importar FormField
 
 interface EditVendorModalProps {
     vendor: Vendor;
@@ -67,27 +69,39 @@ const EditVendorModal: React.FC<EditVendorModalProps> = ({ vendor, onClose, onSa
                         </div>
 
                         <div className="space-y-4">
-                            <div>
-                                <label htmlFor="edit-name" className="block text-sm font-medium mb-1">Nome do Fornecedor</label>
-                                <input id="edit-name" type="text" value={name} onChange={(e) => setName(e.target.value)} required className="w-full p-2 border rounded-md bg-white dark:bg-gray-700 dark:border-gray-600" />
-                            </div>
+                            <FormField
+                                id="edit-name"
+                                label="Nome do Fornecedor"
+                                type="text"
+                                value={name}
+                                onChange={(e) => setName(e.target.value)}
+                                required
+                            />
 
-                            <div>
-                                <label htmlFor="edit-category" className="block text-sm font-medium mb-1">Categoria</label>
-                                <select id="edit-category" value={category} onChange={(e) => setCategory(e.target.value)} className="w-full p-2 border rounded-md bg-white dark:bg-gray-700 dark:border-gray-600">
-                                    {VENDOR_CATEGORIES.map(cat => <option key={cat} value={cat}>{cat}</option>)}
-                                </select>
-                            </div>
+                            <FormField
+                                id="edit-category"
+                                label="Categoria"
+                                type="select"
+                                value={category}
+                                onChange={(e) => setCategory(e.target.value)}
+                                options={VENDOR_CATEGORIES.map(cat => ({ value: cat, label: cat }))}
+                            />
 
                             <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label htmlFor="edit-phone" className="block text-sm font-medium mb-1">Telefone (Opcional)</label>
-                                    <input id="edit-phone" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} className="w-full p-2 border rounded-md bg-white dark:bg-gray-700 dark:border-gray-600" />
-                                </div>
-                                <div>
-                                    <label htmlFor="edit-email" className="block text-sm font-medium mb-1">Email (Opcional)</label>
-                                    <input id="edit-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full p-2 border rounded-md bg-white dark:bg-gray-700 dark:border-gray-600" />
-                                </div>
+                                <FormField
+                                    id="edit-phone"
+                                    label="Telefone (Opcional)"
+                                    type="tel"
+                                    value={phone}
+                                    onChange={(e) => setPhone(e.target.value)}
+                                />
+                                <FormField
+                                    id="edit-email"
+                                    label="Email (Opcional)"
+                                    type="email"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                />
                             </div>
 
                             <div className="border-t border-gray-200 dark:border-gray-700 my-4"></div>
@@ -104,14 +118,25 @@ const EditVendorModal: React.FC<EditVendorModalProps> = ({ vendor, onClose, onSa
                                             Cancelar Aditivo
                                         </button>
                                     </div>
-                                    <div>
-                                        <label htmlFor="addendumAmount" className="block text-sm font-medium mb-1">Valor do Aditivo (R$)</label>
-                                        <input type="number" id="addendumAmount" value={addendumAmount} onChange={(e) => setAddendumAmount(parseFloat(e.target.value) || 0)} required min="0" step="0.01" className="w-full p-2 border rounded-md bg-white dark:bg-gray-700 dark:border-gray-600" />
-                                    </div>
-                                    <div>
-                                        <label htmlFor="addendumReason" className="block text-sm font-medium mb-1">Motivo do Aditivo</label>
-                                        <textarea id="addendumReason" value={addendumReason} onChange={(e) => setAddendumReason(e.target.value)} required rows={2} className="w-full p-2 border rounded-md bg-white dark:bg-gray-700 dark:border-gray-600"></textarea>
-                                    </div>
+                                    <FormField
+                                        id="addendumAmount"
+                                        label="Valor do Aditivo (R$)"
+                                        type="number"
+                                        value={addendumAmount}
+                                        onChange={(e) => setAddendumAmount(parseFloat(e.target.value) || 0)}
+                                        required
+                                        min="0"
+                                        step="0.01"
+                                    />
+                                    <FormField
+                                        id="addendumReason"
+                                        label="Motivo do Aditivo"
+                                        type="textarea"
+                                        value={addendumReason}
+                                        onChange={(e) => setAddendumReason(e.target.value)}
+                                        required
+                                        rows={2}
+                                    />
                                     <PaymentSetup
                                         contractedValue={addendumAmount}
                                         onParcelsChange={(newParcels, isValid) => {
