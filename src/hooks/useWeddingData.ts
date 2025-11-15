@@ -32,7 +32,8 @@ export const useWeddingData = () => {
             }
 
             const vendorPaymentsMap: Record<string, Payment[]> = updatedPayments.reduce((acc, p) => {
-                if (!acc[p.vendorId]) acc[p[p.vendorId]] = [];
+                // Correção: A linha abaixo estava com um erro de digitação
+                if (!acc[p.vendorId]) acc[p.vendorId] = []; 
                 acc[p.vendorId].push(p);
                 return acc;
             }, {} as Record<string, Payment[]>);
