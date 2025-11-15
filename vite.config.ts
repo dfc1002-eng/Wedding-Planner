@@ -18,6 +18,10 @@ export default defineConfig(({ mode }) => {
         alias: {
           '@': path.resolve(__dirname, '.'),
         }
-      }
+      },
+      // Adicione esta configuração para o diretório de saída do build
+      build: {
+        outDir: 'build', // O Firebase App Hosting espera os arquivos de build nesta pasta
+      },
     };
 });
