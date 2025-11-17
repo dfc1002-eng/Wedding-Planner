@@ -19,6 +19,16 @@ export const VENDOR_CATEGORIES: string[] = [
     'Outros',
 ];
 
+export const ESSENTIAL_CATEGORIES: string[] = [
+    'Local',
+    'Buffet',
+    'Decoração',
+    'Fotografia',
+    'Filmagem',
+    'Música',
+    'Assessoria',
+];
+
 export const GUEST_GROUPS: string[] = [
     'Família da Noiva',
     'Amigos da Noiva',
@@ -137,10 +147,10 @@ export const MOCK_TASKS: Task[] = [
 ];
 
 export const MOCK_GUESTS: Guest[] = [
-  { id: 'g1', name: 'Carlos Andrade', status: GuestStatus.Confirmed, group: 'Família da Noiva', plusOnes: 1, confirmedPlusOnes: 1, table: 1, phone: '(11) 98888-7777', address: 'Rua das Flores, 123, São Paulo, SP', notes: 'Padrinho do noivo. Alergia a camarão.' },
+  { id: 'g1', name: 'Carlos Andrade', status: GuestStatus.Confirmed, group: 'Família da Noiva', plusOnes: 1, phone: '(11) 98888-7777', address: 'Rua das Flores, 123, São Paulo, SP', notes: 'Padrinho do noivo. Alergia a camarão.' },
   { id: 'g2', name: 'Mariana Lima', status: GuestStatus.Pending, group: 'Amigos do Noivo', plusOnes: 0, phone: '(21) 99999-5555', address: 'Av. Copacabana, 456, Rio de Janeiro, RJ', notes: 'Amiga de infância.' },
   { id: 'g3', name: 'Pedro Souza', status: GuestStatus.Declined, group: 'Amigos do Noivo', plusOnes: 1, phone: '(31) 97777-6666', address: 'Rua da Bahia, 789, Belo Horizonte, MG', notes: 'Estará em viagem.' },
-  { id: 'g4', name: 'Ana Costa', status: GuestStatus.Confirmed, group: 'Família do Noivo', plusOnes: 3, confirmedPlusOnes: 3, table: 2, phone: '(11) 96666-4444', address: 'Rua Augusta, 101, São Paulo, SP', notes: 'Tia e primos do noivo.' },
+  { id: 'g4', name: 'Ana Costa', status: GuestStatus.Confirmed, group: 'Família do Noivo', plusOnes: 3, table: 2, phone: '(11) 96666-4444', address: 'Rua Augusta, 101, São Paulo, SP', notes: 'Tia e primos do noivo.' },
   { id: 'g5', name: 'Lucas Ferreira', status: GuestStatus.Pending, group: 'Amigos da Noiva', plusOnes: 1, phone: '(48) 95555-3333', address: 'Av. Beira Mar, 212, Florianópolis, SC', notes: '' },
   { id: 'g6', name: 'Julia Martins', status: GuestStatus.Confirmed, group: 'Família da Noiva', plusOnes: 0, table: 1, phone: '(11) 94444-2222', address: 'Rua das Flores, 123, São Paulo, SP', notes: 'Irmã da noiva. Madrinha.' },
 ];
