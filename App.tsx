@@ -17,9 +17,8 @@ import AddEditGuestModal from './src/components/modals/AddEditGuestModal';
 import EditGiftModal from './src/components/modals/EditGiftModal';
 import RegisterPaymentModal from './src/components/modals/RegisterPaymentModal';
 import ThankYouModal from './src/components/modals/ThankYouModal';
-import { Vendor, Payment, NewVendorFormData, EditVendorData, Guest, GuestFormData, Gift, GiftFormData } from './src/types';
+import { Vendor, Payment, VendorStatus, NewVendorFormData, EditVendorData, Guest, GuestFormData, Gift, GiftFormData, GuestStatus } from './src/types';
 import Toast from './src/components/ui/Toast';
-import { VendorFilterValue } from './src/components/vendors/VendorFilter';
 
 export type Screen = 'dashboard' | 'vendors' | 'payments' | 'checklist' | 'guests' | 'giftList' | 'settings';
 
@@ -68,7 +67,7 @@ const AppContent: React.FC = () => {
         handleToggleThankYouSent,
     } = useWedding();
 
-    const [vendorStatusFilter, setVendorStatusFilter] = useState<VendorFilterValue>('essentials');
+    const [vendorStatusFilter, setVendorStatusFilter] = useState<VendorStatus | 'all'>('all');
 
     useEffect(() => {
         if (isDarkMode) {

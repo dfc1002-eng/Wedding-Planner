@@ -1,17 +1,16 @@
 import React, { useState, useMemo } from 'react';
 import { useWedding } from '../context/WeddingDataContext';
-import { Vendor } from '../types';
+import { Vendor, VendorStatus } from '../types';
 import Icon from '../components/ui/Icon';
 import VendorCard from '../components/vendors/VendorCard';
-import VendorFilter, { VendorFilterValue } from '../components/vendors/VendorFilter';
-import { ESSENTIAL_CATEGORIES } from '../constants';
+import VendorFilter from '../components/vendors/VendorFilter';
 
 interface VendorsScreenProps {
     onAddVendor: () => void;
     onEditVendor: (vendor: Vendor) => void;
     onDeleteVendor: (vendorId: string) => void;
-    statusFilter: VendorFilterValue;
-    onFilterChange: (status: VendorFilterValue) => void;
+    statusFilter: VendorStatus | 'all';
+    onFilterChange: (status: VendorStatus | 'all') => void;
 }
 
 const VendorsScreen: React.FC<VendorsScreenProps> = ({ onAddVendor, onEditVendor, onDeleteVendor, statusFilter, onFilterChange }) => {
@@ -19,9 +18,6 @@ const VendorsScreen: React.FC<VendorsScreenProps> = ({ onAddVendor, onEditVendor
     const [expandedVendor, setExpandedVendor] = useState<string | null>(null);
 
     const filteredVendors = useMemo(() => {
-        if (statusFilter === 'essentials') {
-            return vendors.filter(v => ESSENTIAL_CATEGORIES.includes(v.category));
-        }
         if (statusFilter === 'all') return vendors;
         return vendors.filter(v => v.status === statusFilter);
     }, [vendors, statusFilter]);
