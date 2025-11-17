@@ -44,12 +44,16 @@ const vendor1Id = 'vendor-1';
 const vendor2Id = 'vendor-2';
 const vendor3Id = 'vendor-3';
 const vendor4Id = 'vendor-4';
+const vendor5Id = 'vendor-5';
+const vendor6Id = 'vendor-6';
 
 export const MOCK_VENDORS: Vendor[] = [
     { id: vendor1Id, name: 'Buffet Sabor Divino', category: 'Buffet', contractedValue: 25000, amountPaid: 12500, status: VendorStatus.PartiallyPaid, email: 'contato@sabordivino.com', phone: '11 98765-4321' },
     { id: vendor2Id, name: 'Eterna Fotografia', category: 'Fotografia', contractedValue: 8000, amountPaid: 8000, status: VendorStatus.Paid, email: 'foto@eterna.com', phone: '21 91234-5678' },
     { id: vendor3Id, name: 'Espaço Sonho Real', category: 'Local', contractedValue: 15000, amountPaid: 7500, status: VendorStatus.PartiallyPaid, email: 'eventos@sonhoreal.com' },
     { id: vendor4Id, name: 'DJ Festa Boa', category: 'Música', contractedValue: 4500, amountPaid: 0, status: VendorStatus.Planned, phone: '31 99999-8888' },
+    { id: vendor5Id, name: 'Decorações Encantadas', category: 'Decoração', contractedValue: 12000, amountPaid: 0, status: VendorStatus.Planned, email: 'contato@decoracoesencantadas.com', phone: '11 91111-2222' },
+    { id: vendor6Id, name: 'Cerimonial Sonho Perfeito', category: 'Cerimonial', contractedValue: 7000, amountPaid: 3500, status: VendorStatus.PartiallyPaid, email: 'contato@sonhoperfeito.com', phone: '21 93333-4444' },
 ];
 
 export const MOCK_PAYMENTS: Payment[] = [
@@ -63,6 +67,12 @@ export const MOCK_PAYMENTS: Payment[] = [
     { id: 'p5', vendorId: vendor3Id, parcelValue: 7500, dueDate: addMonths(today, 2), status: PaymentStatus.Open },
     // DJ
     { id: 'p6', vendorId: vendor4Id, parcelValue: 4500, dueDate: addDays(today, 3), status: PaymentStatus.Open },
+    // Decoração
+    { id: 'p7', vendorId: vendor5Id, parcelValue: 6000, dueDate: addMonths(today, 2), status: PaymentStatus.Open },
+    { id: 'p8', vendorId: vendor5Id, parcelValue: 6000, dueDate: addMonths(today, 4), status: PaymentStatus.Open },
+    // Cerimonial
+    { id: 'p9', vendorId: vendor6Id, parcelValue: 3500, dueDate: addMonths(today, -1), status: PaymentStatus.Paid, paymentDate: addMonths(today, -1) },
+    { id: 'p10', vendorId: vendor6Id, parcelValue: 3500, dueDate: addMonths(today, 1), status: PaymentStatus.Open },
 ];
 
 
