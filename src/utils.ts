@@ -59,7 +59,7 @@ export const getCategoryIcon = (category: string): string => {
         case 'Buffet': return 'restaurant_menu';
         case 'Decoração': return 'local_florist';
         case 'Fotografia': return 'photo_camera';
-        case 'Assessoria': return 'event_note';
+        case 'Cerimonial': return 'event_note';
         case 'Local': return 'location_on';
         case 'Filmagem': return 'videocam';
         case 'Música': return 'music_note';

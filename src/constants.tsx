@@ -6,7 +6,7 @@ export const VENDOR_CATEGORIES: string[] = [
     'Buffet',
     'Decoração',
     'Fotografia',
-    'Assessoria',
+    'Cerimonial',
     'Local',
     'Filmagem',
     'Música',
@@ -70,7 +70,7 @@ export const MOCK_TASKS: Task[] = [
     // 12 - 18 MESES ANTES
     { id: 't1', title: 'Fazer a lista de convidados (prévia)', completed: true, timeframe: '12 - 18 MESES ANTES' },
     { id: 't2', title: 'Definir a data do casamento', completed: true, timeframe: '12 - 18 MESES ANTES' },
-    { id: 't3', title: 'Contratar assessoria e cerimonial', completed: true, timeframe: '12 - 18 MESES ANTES', createsVendorCategory: 'Assessoria', isImportant: true },
+    { id: 't3', title: 'Contratar assessoria e cerimonial', completed: true, timeframe: '12 - 18 MESES ANTES', createsVendorCategory: 'Cerimonial', isImportant: true },
     { id: 't4', title: 'Escolher o local do casamento (cerimônia e festa)', completed: true, timeframe: '12 - 18 MESES ANTES', createsVendorCategory: 'Local', isImportant: true },
     { id: 't5', title: 'Escolher fotógrafo', completed: true, timeframe: '12 - 18 MESES ANTES', createsVendorCategory: 'Fotografia', isImportant: true },
     { id: 't6', title: 'Escolher DJ', completed: false, timeframe: '12 - 18 MESES ANTES', createsVendorCategory: 'Música' },
