@@ -17,6 +17,7 @@ import AddEditGuestModal from './src/components/modals/AddEditGuestModal';
 import EditGiftModal from './src/components/modals/EditGiftModal';
 import RegisterPaymentModal from './src/components/modals/RegisterPaymentModal';
 import ThankYouModal from './src/components/modals/ThankYouModal';
+import OnboardingModal from './src/components/modals/OnboardingModal'; // Importar o novo modal
 import { Vendor, Payment, VendorStatus, NewVendorFormData, EditVendorData, Guest, GuestFormData, Gift, GiftFormData, GuestStatus } from './src/types';
 import Toast from './src/components/ui/Toast';
 
@@ -33,6 +34,9 @@ const AppContent: React.FC = () => {
         // Recolhido por padrão em telas menores
         return window.innerWidth >= 768;
     });
+
+    // Onboarding State
+    const [isOnboardingOpen, setIsOnboardingOpen] = useState(false);
 
     // Modal States
     const [isAddVendorModalOpen, setAddVendorModalOpen] = useState(false);
@@ -82,6 +86,20 @@ const AppContent: React.FC = () => {
     useEffect(() => {
         localStorage.setItem('sidebarExpanded', String(isSidebarExpanded));
     }, [isSidebarExpanded]);
+
+    // Onboarding Logic
+    useEffect(() => {
+        const hasOnboarded = localStorage.getItem('onboardingCompleted');
+        if (!hasOnboarded) {
+            setIsOnboardingOpen(true);
+        }
+    }, []);
+
+    const handleCloseOnboarding = () => {
+        localStorage.setItem('onboardingCompleted', 'true');
+        setIsOnboardingOpen(false);
+        setActiveScreen('settings'); // Opcional: levar o usuário direto para a tela de ajustes
+    };
 
     const toggleDarkMode = () => setIsDarkMode(prev => !prev);
     const toggleSidebar = () => setIsSidebarExpanded(prev => !prev);
@@ -250,6 +268,7 @@ const AppContent: React.FC = () => {
             {toast && <Toast key={toast.id} message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
 
             {/* Modals */}
+            {isOnboardingOpen && <OnboardingModal onClose={handleCloseOnboarding} />}
             {isAddVendorModalOpen && <AddVendorModal onClose={() => { setAddVendorModalOpen(false); setPrefilledCategory(undefined); }} onSave={handleSaveNewVendor} prefilledCategory={prefilledCategory} />}
             {editingVendor && (
                 <EditVendorModal 
