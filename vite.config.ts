@@ -5,13 +5,16 @@ import react from '@vitejs/plugin-react';
 export default defineConfig(({ mode }) => {
     const env = loadEnv(mode, '.', '');
     return {
+      // Configurações do servidor de desenvolvimento local
       server: {
         port: 3000,
         host: '0.0.0.0',
       },
+      // Configurações do servidor de PREVIEW (Produção/Firebase)
+      // É aqui que a mágica acontece:
       preview: {
         port: 8080,
-        host: "0.0.0.0",
+        host: '0.0.0.0',
       },
       plugins: [react()],
       define: {
@@ -23,9 +26,8 @@ export default defineConfig(({ mode }) => {
           '@': path.resolve(__dirname, '.'),
         }
       },
-      // Adicione esta configuração para o diretório de saída do build
       build: {
-        outDir: 'build', // O Firebase App Hosting espera os arquivos de build nesta pasta
+        outDir: 'build',
       },
     };
 });
