@@ -16,15 +16,15 @@ import RegisterPaymentModal from './src/components/modals/RegisterPaymentModal';
 import ThankYouModal from './src/components/modals/ThankYouModal';
 import OnboardingModal from './src/components/modals/OnboardingModal';
 
-// --- TELAS COM LAZY LOADING (A Mágica do Code Splitting) ---
-const DashboardScreen = React.lazy(() => import('./src/screens/DashboardScreen'));
-const VendorsScreen = React.lazy(() => import('./src/screens/VendorsScreen'));
-const PaymentsScreen = React.lazy(() => import('./src/screens/PaymentsScreen'));
-const ChecklistScreen = React.lazy(() => import('./src/screens/ChecklistScreen'));
-const GuestsScreen = React.lazy(() => import('./src/screens/GuestsScreen'));
-const GiftListScreen = React.lazy(() => import('./src/screens/GiftListScreen'));
-const SettingsScreen = React.lazy(() => import('./src/screens/SettingsScreen'));
-const LoginScreen = React.lazy(() => import('./src/screens/LoginScreen'));
+// --- TELAS COM LAZY LOADING (COM EXTENSÃO .tsx) ---
+const DashboardScreen = React.lazy(() => import('./src/screens/DashboardScreen.tsx'));
+const VendorsScreen = React.lazy(() => import('./src/screens/VendorsScreen.tsx'));
+const PaymentsScreen = React.lazy(() => import('./src/screens/PaymentsScreen.tsx'));
+const ChecklistScreen = React.lazy(() => import('./src/screens/ChecklistScreen.tsx'));
+const GuestsScreen = React.lazy(() => import('./src/screens/GuestsScreen.tsx'));
+const GiftListScreen = React.lazy(() => import('./src/screens/GiftListScreen.tsx'));
+const SettingsScreen = React.lazy(() => import('./src/screens/SettingsScreen.tsx'));
+const LoginScreen = React.lazy(() => import('./src/screens/LoginScreen.tsx'));
 
 import { Vendor, Payment, VendorStatus, NewVendorFormData, EditVendorData, Guest, GuestFormData, Gift, GiftFormData, GuestStatus } from './src/types';
 
