@@ -1,33 +1,33 @@
 import React, { useState, useEffect, Suspense } from 'react';
-import { WeddingDataProvider, useWedding } from '@/src/context/WeddingDataContext';
-import { AuthProvider, useAuth } from '@/src/context/AuthContext';
+// Usando caminhos relativos simples (./) que funcionam sempre
+import { WeddingDataProvider, useWedding } from './context/WeddingDataContext';
+import { AuthProvider, useAuth } from './context/AuthContext';
 
-import Sidebar from '@/src/components/layout/Sidebar';
-import Header from '@/src/components/layout/Header';
-import Toast from '@/src/components/ui/Toast';
+import Sidebar from './components/layout/Sidebar';
+import Header from './components/layout/Header';
+import Toast from './components/ui/Toast';
 
 // --- MODAIS ---
-import AddVendorModal from '@/src/components/modals/AddVendorModal';
-import EditVendorModal from '@/src/components/modals/EditVendorModal';
-import ConfirmationModal from '@/src/components/modals/ConfirmationModal';
-import AddEditGuestModal from '@/src/components/modals/AddEditGuestModal';
-import EditGiftModal from '@/src/components/modals/EditGiftModal';
-import RegisterPaymentModal from '@/src/components/modals/RegisterPaymentModal';
-import ThankYouModal from '@/src/components/modals/ThankYouModal';
-import OnboardingModal from '@/src/components/modals/OnboardingModal';
+import AddVendorModal from './components/modals/AddVendorModal';
+import EditVendorModal from './components/modals/EditVendorModal';
+import ConfirmationModal from './components/modals/ConfirmationModal';
+import AddEditGuestModal from './components/modals/AddEditGuestModal';
+import EditGiftModal from './components/modals/EditGiftModal';
+import RegisterPaymentModal from './components/modals/RegisterPaymentModal';
+import ThankYouModal from './components/modals/ThankYouModal';
+import OnboardingModal from './components/modals/OnboardingModal';
 
-// --- TELAS COM CAMINHOS ABSOLUTOS (@/src) ---
-// Isso resolve o erro de "File not found"
-const DashboardScreen = React.lazy(() => import('@/src/screens/DashboardScreen.tsx'));
-const VendorsScreen = React.lazy(() => import('@/src/screens/VendorsScreen.tsx'));
-const PaymentsScreen = React.lazy(() => import('@/src/screens/PaymentsScreen.tsx'));
-const ChecklistScreen = React.lazy(() => import('@/src/screens/ChecklistScreen.tsx'));
-const GuestsScreen = React.lazy(() => import('@/src/screens/GuestsScreen.tsx'));
-const GiftListScreen = React.lazy(() => import('@/src/screens/GiftListScreen.tsx'));
-const SettingsScreen = React.lazy(() => import('@/src/screens/SettingsScreen.tsx'));
-const LoginScreen = React.lazy(() => import('@/src/screens/LoginScreen.tsx'));
+// --- TELAS (Lazy Loading com caminhos relativos e extensão .tsx) ---
+const DashboardScreen = React.lazy(() => import('./screens/DashboardScreen.tsx'));
+const VendorsScreen = React.lazy(() => import('./screens/VendorsScreen.tsx'));
+const PaymentsScreen = React.lazy(() => import('./screens/PaymentsScreen.tsx'));
+const ChecklistScreen = React.lazy(() => import('./screens/ChecklistScreen.tsx'));
+const GuestsScreen = React.lazy(() => import('./screens/GuestsScreen.tsx'));
+const GiftListScreen = React.lazy(() => import('./screens/GiftListScreen.tsx'));
+const SettingsScreen = React.lazy(() => import('./screens/SettingsScreen.tsx'));
+const LoginScreen = React.lazy(() => import('./screens/LoginScreen.tsx'));
 
-import { Vendor, Payment, VendorStatus, NewVendorFormData, EditVendorData, Guest, GuestFormData, Gift, GiftFormData, GuestStatus } from '@/src/types';
+import { Vendor, Payment, VendorStatus, NewVendorFormData, EditVendorData, Guest, GuestFormData, Gift, GiftFormData, GuestStatus } from './types';
 
 export type Screen = 'dashboard' | 'vendors' | 'payments' | 'checklist' | 'guests' | 'giftList' | 'settings';
 
