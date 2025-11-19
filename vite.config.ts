@@ -5,16 +5,17 @@ import react from '@vitejs/plugin-react';
 export default defineConfig(({ mode }) => {
     const env = loadEnv(mode, '.', '');
     return {
-      // Configurações do servidor de desenvolvimento local
+      // Configuração para desenvolvimento local
       server: {
         port: 3000,
         host: '0.0.0.0',
       },
-      // Configurações do servidor de PREVIEW (Produção/Firebase)
-      // É aqui que a mágica acontece:
+      // Configuração CRÍTICA para o Firebase App Hosting
+      // Isso libera o acesso para a URL pública do Cloud Run
       preview: {
         port: 8080,
         host: '0.0.0.0',
+        allowedHosts: true,
       },
       plugins: [react()],
       define: {
