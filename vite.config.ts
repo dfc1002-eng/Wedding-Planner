@@ -5,13 +5,12 @@ import react from '@vitejs/plugin-react';
 export default defineConfig(({ mode }) => {
     const env = loadEnv(mode, '.', '');
     return {
-      // Configuração para desenvolvimento local
+      // Configurações do servidor
       server: {
         port: 3000,
         host: '0.0.0.0',
       },
-      // Configuração CRÍTICA para o Firebase App Hosting
-      // Isso libera o acesso para a URL pública do Cloud Run
+      // Configuração do Preview (Cloud Run / Firebase)
       preview: {
         port: 8080,
         host: '0.0.0.0',
@@ -24,7 +23,8 @@ export default defineConfig(({ mode }) => {
       },
       resolve: {
         alias: {
-          '@': path.resolve(__dirname, '.'),
+          // CORREÇÃO AQUI: Usamos resolve('.') em vez de __dirname
+          '@': path.resolve('.'),
         }
       },
       build: {
