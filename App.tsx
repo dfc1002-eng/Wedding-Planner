@@ -1,15 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { WeddingDataProvider, useWedding } from './src/context/WeddingDataContext';
+import { AuthProvider, useAuth } from './src/context/AuthContext';
 
 import Sidebar from './src/components/layout/Sidebar';
 import Header from './src/components/layout/Header';
-import DashboardScreen from './src/screens/DashboardScreen';
-import VendorsScreen from './src/screens/VendorsScreen';
-import PaymentsScreen from './src/screens/PaymentsScreen';
-import ChecklistScreen from './src/screens/ChecklistScreen';
-import GuestsScreen from './src/screens/GuestsScreen';
-import GiftListScreen from './src/screens/GiftListScreen';
-import SettingsScreen from './src/screens/SettingsScreen';
+import Toast from './src/components/ui/Toast';
+
+// --- MODAIS (Mantemos importação estática para agilidade) ---
 import AddVendorModal from './src/components/modals/AddVendorModal';
 import EditVendorModal from './src/components/modals/EditVendorModal';
 import ConfirmationModal from './src/components/modals/ConfirmationModal';
@@ -17,13 +14,31 @@ import AddEditGuestModal from './src/components/modals/AddEditGuestModal';
 import EditGiftModal from './src/components/modals/EditGiftModal';
 import RegisterPaymentModal from './src/components/modals/RegisterPaymentModal';
 import ThankYouModal from './src/components/modals/ThankYouModal';
-import OnboardingModal from './src/components/modals/OnboardingModal'; // Importar o novo modal
+import OnboardingModal from './src/components/modals/OnboardingModal';
+
+// --- TELAS COM LAZY LOADING (A Mágica do Code Splitting) ---
+const DashboardScreen = React.lazy(() => import('./src/screens/DashboardScreen'));
+const VendorsScreen = React.lazy(() => import('./src/screens/VendorsScreen'));
+const PaymentsScreen = React.lazy(() => import('./src/screens/PaymentsScreen'));
+const ChecklistScreen = React.lazy(() => import('./src/screens/ChecklistScreen'));
+const GuestsScreen = React.lazy(() => import('./src/screens/GuestsScreen'));
+const GiftListScreen = React.lazy(() => import('./src/screens/GiftListScreen'));
+const SettingsScreen = React.lazy(() => import('./src/screens/SettingsScreen'));
+const LoginScreen = React.lazy(() => import('./src/screens/LoginScreen'));
+
 import { Vendor, Payment, VendorStatus, NewVendorFormData, EditVendorData, Guest, GuestFormData, Gift, GiftFormData, GuestStatus } from './src/types';
-import Toast from './src/components/ui/Toast';
 
 export type Screen = 'dashboard' | 'vendors' | 'payments' | 'checklist' | 'guests' | 'giftList' | 'settings';
 
+// Componente de Loading Simples
+const LoadingFallback = () => (
+  <div className="flex items-center justify-center h-full min-h-[200px]">
+    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-brand-gold"></div>
+  </div>
+);
+
 const AppContent: React.FC = () => {
+    const { user, loading } = useAuth();
     const [activeScreen, setActiveScreen] = useState<Screen>('dashboard');
     const [isDarkMode, setIsDarkMode] = useState(() => localStorage.getItem('theme') === 'dark');
     const [isSidebarExpanded, setIsSidebarExpanded] = useState(() => {
@@ -31,7 +46,6 @@ const AppContent: React.FC = () => {
         if (savedState !== null) {
             return savedState === 'true';
         }
-        // Recolhido por padrão em telas menores
         return window.innerWidth >= 768;
     });
 
@@ -50,7 +64,6 @@ const AppContent: React.FC = () => {
     const [prefilledCategory, setPrefilledCategory] = useState<string | undefined>(undefined);
     const [toast, setToast] = useState<{ id: number; message: string; type: 'success' | 'error' } | null>(null);
     
-    // Global State & Handlers from Context
     const { 
         weddingData, 
         vendors,
@@ -66,7 +79,7 @@ const AppContent: React.FC = () => {
         handleAddGuest,
         handleEditGuest,
         handleDeleteGuest,
-        handleChangeGuestsStatus, // Nova função
+        handleChangeGuestsStatus,
         handleUpdateGift,
         handleToggleThankYouSent,
     } = useWedding();
@@ -87,18 +100,17 @@ const AppContent: React.FC = () => {
         localStorage.setItem('sidebarExpanded', String(isSidebarExpanded));
     }, [isSidebarExpanded]);
 
-    // Onboarding Logic
     useEffect(() => {
         const hasOnboarded = localStorage.getItem('onboardingCompleted');
-        if (!hasOnboarded) {
+        if (!hasOnboarded && user) { // Só mostra onboarding se estiver logado
             setIsOnboardingOpen(true);
         }
-    }, []);
+    }, [user]);
 
     const handleCloseOnboarding = () => {
         localStorage.setItem('onboardingCompleted', 'true');
         setIsOnboardingOpen(false);
-        setActiveScreen('settings'); // Opcional: levar o usuário direto para a tela de ajustes
+        setActiveScreen('settings');
     };
 
     const toggleDarkMode = () => setIsDarkMode(prev => !prev);
@@ -141,7 +153,7 @@ const AppContent: React.FC = () => {
         });
     };
     
-     const onConfirmDeleteGuest = (guestIds: string[]) => { // Alterado para aceitar array
+     const onConfirmDeleteGuest = (guestIds: string[]) => {
         setConfirmation({
             title: 'Confirmar Exclusão',
             message: `Tem certeza que deseja excluir ${guestIds.length > 1 ? 'estes convidados' : 'este convidado'}? Esta ação não pode ser desfeita.`,
@@ -204,6 +216,19 @@ const AppContent: React.FC = () => {
         showToast(isThanked ? 'Agradecimento marcado!' : 'Agradecimento desmarcado.');
     };
 
+    // Lógica de Login / Loading
+    if (loading) {
+        return <div className="flex items-center justify-center h-screen text-brand-gray">Carregando...</div>;
+    }
+
+    if (!user) {
+        return (
+            <Suspense fallback={<div className="flex items-center justify-center h-screen">Carregando Login...</div>}>
+                <LoginScreen />
+            </Suspense>
+        );
+    }
+
     const renderScreen = () => {
         switch (activeScreen) {
             case 'dashboard':
@@ -228,7 +253,7 @@ const AppContent: React.FC = () => {
                             onAddGuest={() => setGuestModalOpen(true)}
                             onEditGuest={(guest) => { setEditingGuest(guest); setGuestModalOpen(true); }}
                             onDeleteGuest={onConfirmDeleteGuest}
-                            onChangeGuestsStatus={handleChangeGuestsStatus} // Passando a nova função
+                            onChangeGuestsStatus={handleChangeGuestsStatus}
                        />;
             case 'giftList':
                 return <GiftListScreen 
@@ -253,21 +278,22 @@ const AppContent: React.FC = () => {
                 isExpanded={isSidebarExpanded}
                 toggleSidebar={toggleSidebar}
             />
-            <div className="flex-1 min-w-0"> {/* Adicionado min-w-0 aqui */}
+            <div className="flex-1 min-w-0">
                 <main className="p-10">
                     <Header 
                         weddingData={weddingData} 
                         paymentNotifications={paymentNotifications}
                         setActiveScreen={setActiveScreen}
                     />
-                    {renderScreen()}
+                    <Suspense fallback={<LoadingFallback />}>
+                        {renderScreen()}
+                    </Suspense>
                 </main>
             </div>
 
-            {/* Toast Container */}
             {toast && <Toast key={toast.id} message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
 
-            {/* Modals */}
+            {/* Modals (Mantidos no App para acesso global) */}
             {isOnboardingOpen && <OnboardingModal onClose={handleCloseOnboarding} />}
             {isAddVendorModalOpen && <AddVendorModal onClose={() => { setAddVendorModalOpen(false); setPrefilledCategory(undefined); }} onSave={handleSaveNewVendor} prefilledCategory={prefilledCategory} />}
             {editingVendor && (
@@ -324,9 +350,11 @@ const AppContent: React.FC = () => {
 
 const App: React.FC = () => {
     return (
-        <WeddingDataProvider>
-            <AppContent />
-        </WeddingDataProvider>
+        <AuthProvider>
+            <WeddingDataProvider>
+                <AppContent />
+            </WeddingDataProvider>
+        </AuthProvider>
     );
 };
 
