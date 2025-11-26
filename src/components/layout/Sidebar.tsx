@@ -1,18 +1,22 @@
 import React from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import Icon from '../ui/Icon';
 import Tooltip from '../ui/Tooltip';
-import { Screen } from '../../../App';
 
 interface SidebarProps {
-    activeScreen: Screen;
-    setActiveScreen: (screen: Screen) => void;
     isDarkMode: boolean;
     toggleDarkMode: () => void;
     isExpanded: boolean;
     toggleSidebar: () => void;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ activeScreen, setActiveScreen, isDarkMode, toggleDarkMode, isExpanded, toggleSidebar }) => {
+const Sidebar: React.FC<SidebarProps> = ({ isDarkMode, toggleDarkMode, isExpanded, toggleSidebar }) => {
+    const navigate = useNavigate();
+    const location = useLocation();
+    
+    // Extrai o ID da tela da URL (ex: /vendors -> vendors). Default para 'dashboard'
+    const currentPath = location.pathname.substring(1) || 'dashboard';
+
     const navItems = [
         { id: 'dashboard', icon: 'grid_view', label: 'Geral' },
         { id: 'vendors', icon: 'storefront', label: 'Fornecedores' },
@@ -22,6 +26,10 @@ const Sidebar: React.FC<SidebarProps> = ({ activeScreen, setActiveScreen, isDark
         { id: 'giftList', icon: 'card_giftcard', label: 'Presentes' },
         { id: 'settings', icon: 'settings', label: 'Ajustes' },
     ];
+
+    const handleNavigation = (id: string) => {
+        navigate(id === 'dashboard' ? '/' : `/${id}`);
+    };
 
     return (
         <aside className={`h-screen sticky top-0 flex flex-col p-4 bg-brand-background dark:bg-gray-800 shadow-md transition-all duration-300 ease-in-out ${isExpanded ? 'w-64' : 'w-20'}`}>
@@ -52,9 +60,9 @@ const Sidebar: React.FC<SidebarProps> = ({ activeScreen, setActiveScreen, isDark
                 {navItems.map(item => (
                     <Tooltip key={item.id} text={item.label} position="right" disabled={isExpanded}>
                         <button 
-                            onClick={() => setActiveScreen(item.id as Screen)} 
+                            onClick={() => handleNavigation(item.id)} 
                             className={`flex items-center space-x-3 p-3 rounded-lg text-left transition-colors w-full ${isExpanded ? '' : 'justify-center'} ${
-                                activeScreen === item.id 
+                                currentPath === item.id || (currentPath === 'dashboard' && item.id === 'dashboard' && location.pathname === '/')
                                     ? 'bg-brand-pink text-brand-gray font-bold dark:bg-brand-gold dark:text-gray-900' 
                                     : 'text-brand-gray-light hover:bg-brand-pink-light dark:text-gray-400 dark:hover:bg-gray-700'
                             }`}

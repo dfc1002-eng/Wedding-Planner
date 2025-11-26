@@ -1,5 +1,5 @@
 import React, { useState, useEffect, Suspense } from 'react';
-// Usando caminhos relativos simples (./) que funcionam sempre
+import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { WeddingDataProvider, useWedding } from './context/WeddingDataContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
 
@@ -17,7 +17,7 @@ import RegisterPaymentModal from './components/modals/RegisterPaymentModal';
 import ThankYouModal from './components/modals/ThankYouModal';
 import OnboardingModal from './components/modals/OnboardingModal';
 
-// --- TELAS (Lazy Loading com caminhos relativos e extensão .tsx) ---
+// --- TELAS (Lazy Loading) ---
 const DashboardScreen = React.lazy(() => import('./screens/DashboardScreen.tsx'));
 const VendorsScreen = React.lazy(() => import('./screens/VendorsScreen.tsx'));
 const PaymentsScreen = React.lazy(() => import('./screens/PaymentsScreen.tsx'));
@@ -27,7 +27,7 @@ const GiftListScreen = React.lazy(() => import('./screens/GiftListScreen.tsx'));
 const SettingsScreen = React.lazy(() => import('./screens/SettingsScreen.tsx'));
 const LoginScreen = React.lazy(() => import('./screens/LoginScreen.tsx'));
 
-import { Vendor, Payment, VendorStatus, NewVendorFormData, EditVendorData, Guest, GuestFormData, Gift, GiftFormData, GuestStatus } from './types';
+import { Vendor, Payment, VendorStatus, NewVendorFormData, EditVendorData, Guest, GuestFormData, Gift, GiftFormData } from './types';
 
 export type Screen = 'dashboard' | 'vendors' | 'payments' | 'checklist' | 'guests' | 'giftList' | 'settings';
 
@@ -37,9 +37,9 @@ const LoadingFallback = () => (
   </div>
 );
 
-const AppContent: React.FC = () => {
+const AppLayout: React.FC = () => {
     const { user, loading } = useAuth();
-    const [activeScreen, setActiveScreen] = useState<Screen>('dashboard');
+    const navigate = useNavigate();
     const [isDarkMode, setIsDarkMode] = useState(() => localStorage.getItem('theme') === 'dark');
     const [isSidebarExpanded, setIsSidebarExpanded] = useState(() => {
         const savedState = localStorage.getItem('sidebarExpanded');
@@ -82,13 +82,13 @@ const AppContent: React.FC = () => {
 
     useEffect(() => {
         const hasOnboarded = localStorage.getItem('onboardingCompleted');
-        if (!hasOnboarded && user) setIsOnboardingOpen(true);
-    }, [user]);
+        if (!hasOnboarded && user && !loading) setIsOnboardingOpen(true);
+    }, [user, loading]);
 
     const handleCloseOnboarding = () => {
         localStorage.setItem('onboardingCompleted', 'true');
         setIsOnboardingOpen(false);
-        setActiveScreen('settings');
+        navigate('/settings');
     };
 
     const toggleDarkMode = () => setIsDarkMode(prev => !prev);
@@ -181,27 +181,24 @@ const AppContent: React.FC = () => {
         );
     }
 
-    const renderScreen = () => {
-        switch (activeScreen) {
-            case 'dashboard': return <DashboardScreen />;
-            case 'vendors': return <VendorsScreen onAddVendor={() => setAddVendorModalOpen(true)} onEditVendor={setEditingVendor} onDeleteVendor={onConfirmDeleteVendor} statusFilter={vendorStatusFilter} onFilterChange={setVendorStatusFilter} />;
-            case 'payments': return <PaymentsScreen onRegisterPayment={onRegisterPayment} onDeletePayment={onConfirmDeletePayment} />;
-            case 'checklist': return <ChecklistScreen onToggleTask={onToggleTask} />;
-            case 'guests': return <GuestsScreen onAddGuest={() => setGuestModalOpen(true)} onEditGuest={(g) => { setEditingGuest(g); setGuestModalOpen(true); }} onDeleteGuest={onConfirmDeleteGuest} onChangeGuestsStatus={handleChangeGuestsStatus} />;
-            case 'giftList': return <GiftListScreen onEditGift={setEditingGift} onToggleThankYou={onToggleThankYou} onSendWhatsApp={(g, p) => setThankYouModalData({ gift: g, phoneNumber: p })} />;
-            case 'settings': return <SettingsScreen onSave={() => showToast('Ajustes salvos!')} />;
-            default: return <DashboardScreen />;
-        }
-    };
-
     return (
         <div className="flex bg-gray-50 dark:bg-gray-900 min-h-screen text-brand-gray dark:text-gray-300">
-            <Sidebar activeScreen={activeScreen} setActiveScreen={setActiveScreen} isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} isExpanded={isSidebarExpanded} toggleSidebar={toggleSidebar} />
+            <Sidebar isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} isExpanded={isSidebarExpanded} toggleSidebar={toggleSidebar} />
             <div className="flex-1 min-w-0">
                 <main className="p-10">
-                    <Header weddingData={weddingData} paymentNotifications={paymentNotifications} setActiveScreen={setActiveScreen} />
+                    <Header weddingData={weddingData} paymentNotifications={paymentNotifications} />
                     <Suspense fallback={<LoadingFallback />}>
-                        {renderScreen()}
+                        <Routes>
+                            <Route path="/" element={<DashboardScreen />} />
+                            <Route path="/dashboard" element={<Navigate to="/" replace />} />
+                            <Route path="/vendors" element={<VendorsScreen onAddVendor={() => setAddVendorModalOpen(true)} onEditVendor={setEditingVendor} onDeleteVendor={onConfirmDeleteVendor} statusFilter={vendorStatusFilter} onFilterChange={setVendorStatusFilter} />} />
+                            <Route path="/payments" element={<PaymentsScreen onRegisterPayment={onRegisterPayment} onDeletePayment={onConfirmDeletePayment} />} />
+                            <Route path="/checklist" element={<ChecklistScreen onToggleTask={onToggleTask} />} />
+                            <Route path="/guests" element={<GuestsScreen onAddGuest={() => setGuestModalOpen(true)} onEditGuest={(g) => { setEditingGuest(g); setGuestModalOpen(true); }} onDeleteGuest={onConfirmDeleteGuest} onChangeGuestsStatus={handleChangeGuestsStatus} />} />
+                            <Route path="/giftList" element={<GiftListScreen onEditGift={setEditingGift} onToggleThankYou={onToggleThankYou} onSendWhatsApp={(g, p) => setThankYouModalData({ gift: g, phoneNumber: p })} />} />
+                            <Route path="/settings" element={<SettingsScreen onSave={() => showToast('Ajustes salvos!')} />} />
+                            <Route path="*" element={<Navigate to="/" replace />} />
+                        </Routes>
                     </Suspense>
                 </main>
             </div>
@@ -224,7 +221,9 @@ const App: React.FC = () => {
     return (
         <AuthProvider>
             <WeddingDataProvider>
-                <AppContent />
+                <BrowserRouter>
+                    <AppLayout />
+                </BrowserRouter>
             </WeddingDataProvider>
         </AuthProvider>
     );
