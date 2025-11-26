@@ -1,4 +1,4 @@
-// FIX: Provided full type definitions that were missing.
+// src/types.ts
 export enum VendorStatus {
     Planned = 'Contratado',
     PartiallyPaid = 'Parcialmente Pago',
@@ -50,6 +50,8 @@ export interface Vendor {
   status: VendorStatus;
   addendums?: Addendum[];
   contractLink?: string;
+  contractUrl?: string;
+  fileName?: string;
 }
 
 export interface Payment {
@@ -61,8 +63,6 @@ export interface Payment {
   paymentDate?: Date;
 }
 
-// FIX: Added NextPayment interface to define the shape of the next upcoming payment object.
-// FIX: Added 'id' to NextPayment for unique identification.
 export interface NextPayment {
     id: string;
     vendorName: string;
@@ -89,7 +89,6 @@ export interface Guest {
     group: string; // Ex: 'Família da Noiva', 'Amigos do Noivo'
     table?: number;
     plusOnes: number; // Acompanhantes convidados
-    // confirmedPlusOnes?: number; // Removido: Acompanhantes que confirmaram
 }
 
 export interface Gift {
@@ -136,7 +135,6 @@ export interface GuestFormData {
     plusOnes: number;
     notes: string;
     status: GuestStatus;
-    // confirmedPlusOnes: number; // Removido: Acompanhantes que confirmaram
 }
 
 export interface GiftFormData {

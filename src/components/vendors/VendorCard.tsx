@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useState, useRef, ChangeEvent } from 'react';
 import { format as formatDate } from 'date-fns';
 import { Vendor, Payment, PaymentStatus } from '../../types';
 import { formatCurrency, getCategoryIcon, cleanPhoneNumber } from '../../utils';
 import StatusChip from '../ui/StatusChip';
 import Icon from '../ui/Icon';
 import Tooltip from '../ui/Tooltip';
+import { useWedding } from '../../context/WeddingDataContext';
 
 interface VendorCardProps {
     vendor: Vendor;
@@ -15,7 +16,59 @@ interface VendorCardProps {
     onDelete: (vendorId: string) => void;
 }
 
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+
 const VendorCard: React.FC<VendorCardProps> = ({ vendor, payments, isExpanded, onToggleExpand, onEdit, onDelete }) => {
+    const { handleUploadContract, handleDeleteContract } = useWedding();
+    const [isUploading, setIsUploading] = useState(false);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+
+    const handleFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        // Security Check: Validate file size
+        if (file.size > MAX_FILE_SIZE) {
+            alert("O arquivo excede o tamanho máximo permitido de 5MB.");
+            if (fileInputRef.current) {
+                fileInputRef.current.value = '';
+            }
+            return;
+        }
+
+        setIsUploading(true);
+        try {
+            await handleUploadContract(vendor.id, file);
+        } catch (error) {
+            console.error("Erro ao fazer upload do contrato:", error);
+            alert("Erro ao fazer upload do contrato. Tente novamente.");
+        } finally {
+            setIsUploading(false);
+            // Limpar o input para permitir selecionar o mesmo arquivo novamente se necessário
+            if (fileInputRef.current) {
+                fileInputRef.current.value = '';
+            }
+        }
+    };
+
+    const handleRemoveContract = async () => {
+        if (!vendor.contractUrl) return;
+        
+        // Confirmação simples antes de excluir
+        if (window.confirm("Tem certeza que deseja excluir este contrato?")) {
+            try {
+                await handleDeleteContract(vendor.id, vendor.contractUrl);
+            } catch (error) {
+                console.error("Erro ao excluir contrato:", error);
+                alert("Erro ao excluir contrato.");
+            }
+        }
+    };
+
+    const handleUploadClick = () => {
+        fileInputRef.current?.click();
+    };
+
     return (
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-5 transition-shadow hover:shadow-lg flex flex-col">
             <div className="flex items-start justify-between gap-4 mb-3">
@@ -60,48 +113,99 @@ const VendorCard: React.FC<VendorCardProps> = ({ vendor, payments, isExpanded, o
                 </Tooltip>
             </div>
 
-            {(vendor.phone || vendor.email || vendor.contractLink) && (
-                <div className="mt-3 space-y-2 text-sm">
-                    {vendor.phone && (
-                        <div className="flex items-center justify-between text-brand-gray-light dark:text-gray-400">
-                             <div className="flex items-center">
-                                <Icon name="call" className="text-base mr-2" />
-                                <a href={`tel:${vendor.phone}`} className="hover:text-brand-gold">{vendor.phone}</a>
-                            </div>
-                            <Tooltip text="Enviar WhatsApp" position="top">
-                                <a
-                                    href={`https://wa.me/55${cleanPhoneNumber(vendor.phone)}`}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
-                                    aria-label={`Enviar WhatsApp para ${vendor.name}`}
-                                >
-                                    <Icon name="whatsapp" className="text-xl" />
-                                </a>
-                            </Tooltip>
+            {/* Informações de Contato e Contrato */}
+            <div className="mt-3 space-y-2 text-sm">
+                {vendor.phone && (
+                    <div className="flex items-center justify-between text-brand-gray-light dark:text-gray-400">
+                            <div className="flex items-center">
+                            <Icon name="call" className="text-base mr-2" />
+                            <a href={`tel:${vendor.phone}`} className="hover:text-brand-gold">{vendor.phone}</a>
                         </div>
-                    )}
-                    {vendor.email && (
-                        <div className="flex items-center text-brand-gray-light dark:text-gray-400">
-                            <Icon name="mail" className="text-base mr-2" />
-                            <a href={`mailto:${vendor.email}`} className="hover:text-brand-gold truncate">{vendor.email}</a>
-                        </div>
-                    )}
-                    {vendor.contractLink && (
-                        <div className="flex items-center text-brand-gray-light dark:text-gray-400">
-                            <Icon name="description" className="text-base mr-2" />
+                        <Tooltip text="Enviar WhatsApp" position="top">
                             <a
-                                href={vendor.contractLink.startsWith('http') ? vendor.contractLink : `https://${vendor.contractLink}`}
+                                href={`https://wa.me/55${cleanPhoneNumber(vendor.phone)}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="hover:text-brand-gold truncate"
+                                className="p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                                aria-label={`Enviar WhatsApp para ${vendor.name}`}
+                            >
+                                <Icon name="whatsapp" className="text-xl" />
+                            </a>
+                        </Tooltip>
+                    </div>
+                )}
+                
+                {vendor.email && (
+                    <div className="flex items-center text-brand-gray-light dark:text-gray-400">
+                        <Icon name="mail" className="text-base mr-2" />
+                        <a href={`mailto:${vendor.email}`} className="hover:text-brand-gold truncate">{vendor.email}</a>
+                    </div>
+                )}
+                
+                {/* Link de Contrato Antigo (Manter compatibilidade) */}
+                {vendor.contractLink && !vendor.contractUrl && (
+                    <div className="flex items-center text-brand-gray-light dark:text-gray-400">
+                        <Icon name="description" className="text-base mr-2" />
+                        <a
+                            href={vendor.contractLink.startsWith('http') ? vendor.contractLink : `https://${vendor.contractLink}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="hover:text-brand-gold truncate"
+                        >
+                            Ver Contrato (Link Externo)
+                        </a>
+                    </div>
+                )}
+
+                {/* Nova Funcionalidade: Upload de Contrato */}
+                <div className="flex items-center text-brand-gray-light dark:text-gray-400 min-h-[24px]">
+                    <Icon name="attach_file" className="text-base mr-2" />
+                    
+                    {isUploading ? (
+                        <div className="flex items-center text-brand-gold">
+                            <span className="animate-spin mr-2">
+                                <Icon name="refresh" className="text-sm" />
+                            </span>
+                            <span>Enviando...</span>
+                        </div>
+                    ) : vendor.contractUrl ? (
+                        <div className="flex items-center gap-2 w-full">
+                            <a 
+                                href={vendor.contractUrl} 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className="text-brand-gold hover:underline font-medium truncate flex-1"
+                                title={vendor.fileName || "Contrato"}
                             >
                                 Ver Contrato
                             </a>
+                            <button 
+                                onClick={handleRemoveContract}
+                                className="text-gray-400 hover:text-red-500 p-1 rounded-full hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                                title="Excluir contrato"
+                            >
+                                <Icon name="delete" className="text-sm" />
+                            </button>
                         </div>
+                    ) : (
+                        <>
+                            <button 
+                                onClick={handleUploadClick}
+                                className="hover:text-brand-gold hover:underline text-left"
+                            >
+                                Anexar Contrato
+                            </button>
+                            <input 
+                                type="file" 
+                                ref={fileInputRef} 
+                                onChange={handleFileChange} 
+                                className="hidden" 
+                                accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                            />
+                        </>
                     )}
                 </div>
-            )}
+            </div>
 
             <div className="mt-auto pt-4">
                  <div className="border-t border-gray-100 dark:border-gray-700 mb-4"></div>

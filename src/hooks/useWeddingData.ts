@@ -15,7 +15,13 @@ import {
     writeBatch,
     getDocs,
 } from 'firebase/firestore';
-import { db } from '../firebase';
+import { 
+    ref, 
+    uploadBytes, 
+    getDownloadURL, 
+    deleteObject 
+} from "firebase/storage";
+import { db, storage } from '../firebase';
 import { useAuth } from '../context/AuthContext';
 import {
     WeddingData,
@@ -374,6 +380,43 @@ export const useWeddingData = () => {
         return false;
     }, [user, gifts]);
 
+    const handleUploadContract = useCallback(async (vendorId: string, file: File): Promise<string | null> => {
+        if (!user) return null;
+        try {
+            const storageRef = ref(storage, `contracts/${user.uid}/${vendorId}/${file.name}`);
+            const snapshot = await uploadBytes(storageRef, file);
+            const downloadURL = await getDownloadURL(snapshot.ref);
+            
+            const vendorRef = doc(db, 'vendors', vendorId);
+            await updateDoc(vendorRef, { 
+                contractUrl: downloadURL,
+                fileName: file.name
+            });
+            
+            return downloadURL;
+        } catch (error) {
+            console.error("Error uploading contract:", error);
+            throw error;
+        }
+    }, [user]);
+
+    const handleDeleteContract = useCallback(async (vendorId: string, fileUrl: string) => {
+        if (!user) return;
+        try {
+            const fileRef = ref(storage, fileUrl);
+            await deleteObject(fileRef);
+            
+            const vendorRef = doc(db, 'vendors', vendorId);
+            await updateDoc(vendorRef, { 
+                contractUrl: null, // or deleteField() if you prefer to remove the field
+                fileName: null 
+            });
+        } catch (error) {
+             console.error("Error deleting contract:", error);
+             throw error;
+        }
+    }, [user]);
+
     return {
         loading,
         weddingData,
@@ -401,5 +444,7 @@ export const useWeddingData = () => {
         handleChangeGuestsStatus,
         handleUpdateGift,
         handleToggleThankYouSent,
+        handleUploadContract,
+        handleDeleteContract,
     };
 };
