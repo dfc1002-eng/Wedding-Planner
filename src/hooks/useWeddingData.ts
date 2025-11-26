@@ -230,17 +230,21 @@ export const useWeddingData = () => {
     
     const handleDeleteVendor = useCallback(async (vendorId: string) => {
         if (!user) return;
-        const batch = writeBatch(db);
-        const vendorRef = doc(db, 'vendors', vendorId);
-        batch.delete(vendorRef);
+        try {
+            const batch = writeBatch(db);
+            const vendorRef = doc(db, 'vendors', vendorId);
+            batch.delete(vendorRef);
 
-        const q = query(collection(db, 'payments'), where('vendorId', '==', vendorId), where('userId', '==', user.uid));
-        const querySnapshot = await getDocs(q);
-        querySnapshot.forEach((doc) => {
-            batch.delete(doc.ref);
-        });
+            const q = query(collection(db, 'payments'), where('vendorId', '==', vendorId), where('userId', '==', user.uid));
+            const querySnapshot = await getDocs(q);
+            querySnapshot.forEach((doc) => {
+                batch.delete(doc.ref);
+            });
 
-        await batch.commit();
+            await batch.commit();
+        } catch (error) {
+            console.error("Error deleting vendor:", error);
+        }
     }, [user]);
 
     const handleRegisterPayment = useCallback(async (data: { vendorId: string, paidAmount: number, paymentDate: Date, paymentId?: string }) => {
