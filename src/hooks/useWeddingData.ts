@@ -13,6 +13,7 @@ import {
     deleteDoc,
     doc,
     writeBatch,
+    getDocs,
 } from 'firebase/firestore';
 import { db } from '../firebase';
 import { useAuth } from '../context/AuthContext';

@@ -77,7 +77,9 @@ export const getCategoryIcon = (category: string): string => {
 
 export const createPaymentsFromParcels = (vendorId: string, parcels: Parcel[]): Payment[] => {
     return parcels.map(parcel => {
-        const dueDate = new Date(parcel.dueDate + 'T00:00:00');
+        // Usando T12:00:00 para evitar problemas de fuso horário (noon-safe)
+        // Isso garante que pequenas variações de fuso não mudem o dia
+        const dueDate = new Date(parcel.dueDate + 'T12:00:00');
         return {
             id: crypto.randomUUID(),
             vendorId: vendorId,
