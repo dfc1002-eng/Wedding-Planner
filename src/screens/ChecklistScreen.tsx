@@ -9,8 +9,9 @@ interface ChecklistScreenProps {
 }
 
 const ChecklistScreen: React.FC<ChecklistScreenProps> = ({ onToggleTask }) => {
-    const { tasks } = useWedding();
+    const { tasks, populateDefaultTasks } = useWedding();
     const [collapsedTimeframes, setCollapsedTimeframes] = useState<Set<string>>(new Set());
+    const [isGenerating, setIsGenerating] = useState(false);
 
     const processedData = useMemo(() => {
         // 1. Agrupar
@@ -25,7 +26,7 @@ const ChecklistScreen: React.FC<ChecklistScreenProps> = ({ onToggleTask }) => {
 
         // 2. Definir ordem dos grupos
         const timeframeOrder = [
-            '12 - 18 MESES ANTES',
+            '12-18 MESES ANTES',
             '10 MESES ANTES',
             '8 MESES ANTES',
             '6 MESES ANTES',
@@ -36,7 +37,14 @@ const ChecklistScreen: React.FC<ChecklistScreenProps> = ({ onToggleTask }) => {
 
         // 3. Criar array ordenado e ordenar tarefas internas
         return Object.keys(grouped)
-            .sort((a, b) => timeframeOrder.indexOf(a) - timeframeOrder.indexOf(b))
+            .sort((a, b) => {
+                 const indexA = timeframeOrder.indexOf(a);
+                 const indexB = timeframeOrder.indexOf(b);
+                 // If not found in order, put at the end
+                 const valA = indexA === -1 ? 999 : indexA;
+                 const valB = indexB === -1 ? 999 : indexB;
+                 return valA - valB;
+            })
             .map(timeframe => {
                 const tasksInGroup = grouped[timeframe];
                 // Ordenar tarefas: importantes e incompletas primeiro
@@ -67,6 +75,49 @@ const ChecklistScreen: React.FC<ChecklistScreenProps> = ({ onToggleTask }) => {
             return newSet;
         });
     };
+
+    const handleGenerateChecklist = async () => {
+        setIsGenerating(true);
+        try {
+            await populateDefaultTasks();
+        } catch (error) {
+            console.error("Erro ao gerar checklist:", error);
+        } finally {
+            setIsGenerating(false);
+        }
+    };
+
+    if (tasks.length === 0) {
+        return (
+             <div>
+                <h2 className="text-3xl font-title text-brand-gray dark:text-white mb-6">Checklist do Casamento</h2>
+                <div className="flex flex-col items-center justify-center p-8 bg-white dark:bg-gray-800 rounded-lg shadow-md text-center">
+                    <Icon name="assignment" className="text-6xl text-brand-gold mb-4" />
+                    <h3 className="text-xl font-bold text-gray-800 dark:text-white mb-2">Sua lista de tarefas está vazia</h3>
+                    <p className="text-gray-600 dark:text-gray-300 mb-6 max-w-md">
+                        Comece com o pé direito! Gere uma lista de tarefas completa e personalizada baseada em recomendações de especialistas.
+                    </p>
+                    <button
+                        onClick={handleGenerateChecklist}
+                        disabled={isGenerating}
+                        className="flex items-center gap-2 bg-brand-gold text-white px-6 py-3 rounded-full font-bold hover:bg-brand-gold-dark transition-colors disabled:opacity-50"
+                    >
+                        {isGenerating ? (
+                            <>
+                                <Icon name="refresh" className="animate-spin" />
+                                Gerando...
+                            </>
+                        ) : (
+                            <>
+                                <Icon name="auto_awesome" />
+                                Gerar Checklist Automático
+                            </>
+                        )}
+                    </button>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div>

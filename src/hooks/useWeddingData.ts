@@ -35,6 +35,7 @@ import {
     Addendum,
 } from '../types';
 import { MOCK_WEDDING_DATA } from '../constants';
+import { DEFAULT_TASKS_DATA } from '../constants/defaultTasks';
 import { getPaymentNotifications } from '../notifications';
 import { createPaymentsFromParcels } from '../utils';
 
@@ -161,6 +162,23 @@ export const useWeddingData = () => {
         return false;
     }, [user, tasks]);
     
+    const populateDefaultTasks = useCallback(async () => {
+        if (!user) return;
+        
+        const batch = writeBatch(db);
+        
+        DEFAULT_TASKS_DATA.forEach(task => {
+            const taskRef = doc(collection(db, 'tasks'));
+            batch.set(taskRef, {
+                ...task,
+                userId: user.uid,
+                createdAt: new Date()
+            });
+        });
+        
+        await batch.commit();
+    }, [user]);
+
     const handleAddVendor = useCallback(async (data: NewVendorFormData) => {
         if (!user) return;
         const batch = writeBatch(db);
@@ -371,6 +389,7 @@ export const useWeddingData = () => {
         expensesByCategory,
         paymentNotifications,
         handleToggleTask,
+        populateDefaultTasks,
         handleAddVendor,
         handleEditVendor,
         handleDeleteVendor,
