@@ -12,8 +12,9 @@ const ChecklistScreen: React.FC<ChecklistScreenProps> = ({ onToggleTask }) => {
     const { tasks } = useWedding();
     const [collapsedTimeframes, setCollapsedTimeframes] = useState<Set<string>>(new Set());
 
-    const tasksByTimeframe = useMemo(() => {
-        return tasks.reduce((acc: Record<string, Task[]>, task) => {
+    const processedData = useMemo(() => {
+        // 1. Agrupar
+        const grouped = tasks.reduce((acc: Record<string, Task[]>, task) => {
             const timeframe = task.timeframe;
             if (!acc[timeframe]) {
                 acc[timeframe] = [];
@@ -21,10 +22,9 @@ const ChecklistScreen: React.FC<ChecklistScreenProps> = ({ onToggleTask }) => {
             acc[timeframe].push(task);
             return acc;
         }, {} as Record<string, Task[]>);
-    }, [tasks]);
 
-    const sortedTimeframes = useMemo(() => {
-        const order = [
+        // 2. Definir ordem dos grupos
+        const timeframeOrder = [
             '12 - 18 MESES ANTES',
             '10 MESES ANTES',
             '8 MESES ANTES',
@@ -33,8 +33,28 @@ const ChecklistScreen: React.FC<ChecklistScreenProps> = ({ onToggleTask }) => {
             '1 MÊS ANTES',
             'CHECKLIST DA SEMANA DO CASAMENTO'
         ];
-        return Object.keys(tasksByTimeframe).sort((a, b) => order.indexOf(a) - order.indexOf(b));
-    }, [tasksByTimeframe]);
+
+        // 3. Criar array ordenado e ordenar tarefas internas
+        return Object.keys(grouped)
+            .sort((a, b) => timeframeOrder.indexOf(a) - timeframeOrder.indexOf(b))
+            .map(timeframe => {
+                const tasksInGroup = grouped[timeframe];
+                // Ordenar tarefas: importantes e incompletas primeiro
+                const sortedTasks = [...tasksInGroup].sort((a, b) => {
+                    const aIsImportantAndIncomplete = a.isImportant && !a.completed;
+                    const bIsImportantAndIncomplete = b.isImportant && !b.completed;
+
+                    if (aIsImportantAndIncomplete && !bIsImportantAndIncomplete) return -1;
+                    if (!aIsImportantAndIncomplete && bIsImportantAndIncomplete) return 1;
+                    return 0; 
+                });
+
+                return {
+                    timeframe,
+                    tasks: sortedTasks
+                };
+            });
+    }, [tasks]);
 
     const handleToggleTimeframe = (timeframe: string) => {
         setCollapsedTimeframes(prev => {
@@ -52,19 +72,8 @@ const ChecklistScreen: React.FC<ChecklistScreenProps> = ({ onToggleTask }) => {
         <div>
             <h2 className="text-3xl font-title text-brand-gray dark:text-white mb-6">Checklist do Casamento</h2>
             <div className="space-y-8">
-                {sortedTimeframes.map((timeframe) => {
-                    const tasksInGroup = tasksByTimeframe[timeframe];
+                {processedData.map(({ timeframe, tasks }) => {
                     const isCollapsed = collapsedTimeframes.has(timeframe);
-
-                    // Sort tasks within the group: important and incomplete first, then others
-                    const sortedTasksInGroup = [...tasksInGroup].sort((a, b) => {
-                        const aIsImportantAndIncomplete = a.isImportant && !a.completed;
-                        const bIsImportantAndIncomplete = b.isImportant && !b.completed;
-
-                        if (aIsImportantAndIncomplete && !bIsImportantAndIncomplete) return -1;
-                        if (!aIsImportantAndIncomplete && bIsImportantAndIncomplete) return 1;
-                        return 0; // Maintain original order for tasks of same importance/completion status
-                    });
 
                     return (
                         <div key={timeframe}>
@@ -79,7 +88,7 @@ const ChecklistScreen: React.FC<ChecklistScreenProps> = ({ onToggleTask }) => {
                             </button>
                             {!isCollapsed && (
                                 <div id={`tasks-${timeframe}`} className="space-y-3">
-                                    {sortedTasksInGroup.map(task => (
+                                    {tasks.map(task => (
                                        <TaskItem key={task.id} task={task} onToggleTask={onToggleTask} />
                                     ))}
                                 </div>
