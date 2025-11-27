@@ -134,10 +134,16 @@ const AppLayout: React.FC = () => {
         else showToast('Fornecedor não encontrado.', 'error');
     };
     
-    const onConfirmRegisterPayment = (data: any) => {
-        handleRegisterPayment(data);
-        setPaymentToRegister(null);
-        showToast(`Pagamento registrado!`);
+    // FIX: Make this async to catch errors
+    const onConfirmRegisterPayment = async (data: any) => {
+        try {
+            await handleRegisterPayment(data);
+            setPaymentToRegister(null);
+            showToast(`Pagamento registrado!`);
+        } catch (error) {
+            console.error("Erro ao registrar pagamento:", error);
+            showToast(`Erro ao registrar: ${error}`, 'error');
+        }
     };
 
     const handleSaveNewVendor = (data: NewVendorFormData) => {

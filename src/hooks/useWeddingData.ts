@@ -94,9 +94,12 @@ export const useWeddingData = () => {
             onSnapshot(queries.payments, snapshot => {
                 const data = snapshot.docs.map(doc => {
                     const paymentData = doc.data();
+                    // FIX: Remove internal 'id' (UUID) to prevent conflicts with real doc.id
+                    const { id: internalId, ...restOfData } = paymentData;
+                    
                     return { 
-                        id: doc.id, 
-                        ...paymentData,
+                        ...restOfData,
+                        id: doc.id, // FORCE REAL DOC ID
                         dueDate: paymentData.dueDate.toDate(),
                         paymentDate: paymentData.paymentDate ? paymentData.paymentDate.toDate() : undefined,
                     } as Payment;

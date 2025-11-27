@@ -1,55 +1,54 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Helper function to check if the user is authenticated
+    
+    // Funções Auxiliares
     function isAuthenticated() {
       return request.auth != null;
     }
 
-    // Helper function to check if the user owns the document
+    // Verifica se o documento JÁ EXISTENTE pertence ao usuário
     function isOwner(userId) {
       return isAuthenticated() && request.auth.uid == userId;
     }
 
-    // Helper function to validate data on create/update
+    // Verifica se os NOVOS dados pertencem ao usuário 
     function isValidOwner() {
        return request.resource.data.userId == request.auth.uid;
     }
 
-    // Rules for all collections
-    // Vendors
+    // --- Regras por Coleção ---
+
     match /vendors/{vendorId} {
       allow read, delete: if isOwner(resource.data.userId);
       allow create: if isValidOwner();
-      allow update: if isOwner(resource.data.userId) && isValidOwner();
+      // 🔒 SEGURO: Só o dono pode atualizar
+      allow update: if isOwner(resource.data.userId);
     }
 
-    // Payments
     match /payments/{paymentId} {
       allow read, delete: if isOwner(resource.data.userId);
       allow create: if isValidOwner();
-      allow update: if isOwner(resource.data.userId) && isValidOwner();
+      // 🔒 SEGURO: Só o dono pode atualizar
+      allow update: if isOwner(resource.data.userId);
     }
 
-    // Tasks
     match /tasks/{taskId} {
       allow read, delete: if isOwner(resource.data.userId);
       allow create: if isValidOwner();
-      allow update: if isOwner(resource.data.userId) && isValidOwner();
+      allow update: if isOwner(resource.data.userId);
     }
 
-    // Guests
     match /guests/{guestId} {
       allow read, delete: if isOwner(resource.data.userId);
       allow create: if isValidOwner();
-      allow update: if isOwner(resource.data.userId) && isValidOwner();
+      allow update: if isOwner(resource.data.userId);
     }
 
-    // Gifts
     match /gifts/{giftId} {
       allow read, delete: if isOwner(resource.data.userId);
       allow create: if isValidOwner();
-      allow update: if isOwner(resource.data.userId) && isValidOwner();
+      allow update: if isOwner(resource.data.userId);
     }
   }
 }

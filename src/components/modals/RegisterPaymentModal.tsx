@@ -1,12 +1,12 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Vendor, Payment } from '../../types';
 import { formatCurrency } from '../../utils';
 import { format as formatDate } from 'date-fns';
 import { ptBR } from 'date-fns/locale/pt-BR';
 import Icon from '../ui/Icon';
-import FormField from '../ui/FormField'; // Importar FormField
+import FormField from '../ui/FormField';
 
 interface RegisterPaymentModalProps {
   modalData: { vendor: Vendor; payment: Payment };
@@ -17,8 +17,22 @@ interface RegisterPaymentModalProps {
 const RegisterPaymentModal: React.FC<RegisterPaymentModalProps> = ({ modalData, onClose, onConfirm }) => {
     const { vendor, payment } = modalData;
     const [paymentDate, setPaymentDate] = useState(formatDate(new Date(), 'yyyy-MM-dd'));
+
+    useEffect(() => {
+        console.log("RegisterPaymentModal mounted with:", { vendor, payment });
+        if (!payment?.id) {
+            console.error("RegisterPaymentModal: Payment ID is missing!", payment);
+        }
+    }, [vendor, payment]);
     
     const handleConfirm = () => {
+        console.log("RegisterPaymentModal: Confirming with paymentId:", payment.id);
+        
+        if (!payment.id) {
+            alert("Erro: ID do pagamento não encontrado. Veja o console.");
+            return;
+        }
+
         onConfirm({
             vendorId: vendor.id,
             vendorName: vendor.name,
@@ -50,6 +64,10 @@ const RegisterPaymentModal: React.FC<RegisterPaymentModalProps> = ({ modalData, 
                     <div className="flex justify-between items-center">
                         <span className="text-brand-gray-light dark:text-gray-400">Data de Vencimento:</span>
                         <span className="font-bold text-right text-brand-gray dark:text-gray-200">{formatDate(payment.dueDate, 'dd/MM/yyyy', { locale: ptBR })}</span>
+                    </div>
+                    {/* DEBUG INFO - REMOVE IN PRODUCTION */}
+                    <div className="text-xs text-gray-400 pt-2 text-center">
+                        ID Pagamento: {payment.id}
                     </div>
                 </div>
 
