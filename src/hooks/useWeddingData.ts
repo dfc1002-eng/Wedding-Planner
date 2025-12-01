@@ -14,6 +14,8 @@ import {
     doc,
     writeBatch,
     getDocs,
+    setDoc,
+    getDoc,
 } from 'firebase/firestore';
 import { 
     ref, 
@@ -47,13 +49,67 @@ import { createPaymentsFromParcels } from '../utils';
 
 export const useWeddingData = () => {
     const { user } = useAuth();
-    const [weddingData, setWeddingData] = useState<WeddingData>(MOCK_WEDDING_DATA);
+    const [weddingData, setWeddingDataState] = useState<WeddingData>(MOCK_WEDDING_DATA);
     const [vendors, setVendors] = useState<Vendor[]>([]);
     const [payments, setPayments] = useState<Payment[]>([]);
     const [tasks, setTasks] = useState<Task[]>([]);
     const [guests, setGuests] = useState<Guest[]>([]);
     const [gifts, setGifts] = useState<Gift[]>([]);
     const [loading, setLoading] = useState(true);
+
+    // Wrapper para atualizar localmente e no Firestore
+    const setWeddingData = useCallback(async (data: WeddingData | ((prev: WeddingData) => WeddingData)) => {
+        if (!user) return;
+        
+        let newData: WeddingData;
+        
+        // Determinar o novo valor (se for função ou objeto direto)
+        if (typeof data === 'function') {
+             // Precisamos acessar o estado atual. 
+             // ATENÇÃO: Em hooks, acessar state dentro de callback pode pegar valor antigo se não estiver na dependência.
+             // Mas aqui vamos usar o setWeddingDataState funcional para garantir.
+             setWeddingDataState(prev => {
+                newData = data(prev);
+                
+                // Dispara o salvamento no Firestore FORA do render loop
+                // Usando setTimeout para sair do ciclo síncrono do React state update
+                setTimeout(async () => {
+                    console.log("Saving to Firestore (via function update):", newData);
+                    try {
+                        const userRef = doc(db, 'users', user.uid);
+                        // Garantir que datas sejam salvas corretamente
+                        const dataToSave = {
+                            ...newData,
+                            weddingDate: newData.weddingDate instanceof Date ? newData.weddingDate : new Date(newData.weddingDate)
+                        };
+                        await setDoc(userRef, { weddingData: dataToSave }, { merge: true });
+                        console.log("Firestore save success!");
+                    } catch (err) {
+                        console.error("Firestore save error:", err);
+                    }
+                }, 0);
+
+                return newData;
+             });
+        } else {
+            newData = data;
+            setWeddingDataState(newData);
+            
+            console.log("Saving to Firestore (direct object):", newData);
+            try {
+                const userRef = doc(db, 'users', user.uid);
+                 const dataToSave = {
+                    ...newData,
+                    weddingDate: newData.weddingDate instanceof Date ? newData.weddingDate : new Date(newData.weddingDate)
+                };
+                await setDoc(userRef, { weddingData: dataToSave }, { merge: true });
+                console.log("Firestore save success!");
+            } catch (err) {
+                console.error("Firestore save error:", err);
+            }
+        }
+
+    }, [user]);
 
 
     useEffect(() => {
@@ -69,6 +125,26 @@ export const useWeddingData = () => {
 
         setLoading(true);
         const userId = user.uid;
+        console.log("Initializing listeners for user:", userId);
+
+        // 1. Listener para Dados do Casamento (User Doc)
+        const userRef = doc(db, 'users', userId);
+        const unsubscribeUser = onSnapshot(userRef, (docSnap) => {
+            if (docSnap.exists()) {
+                const data = docSnap.data();
+                console.log("Received update from Firestore (User Doc):", data);
+                if (data.weddingData) {
+                    setWeddingDataState({
+                        ...data.weddingData,
+                        weddingDate: data.weddingData.weddingDate?.toDate ? data.weddingData.weddingDate.toDate() : new Date(data.weddingData.weddingDate),
+                    });
+                }
+            } else {
+                console.log("User document does not exist yet.");
+            }
+        }, (error) => {
+            console.error("Error listening to user doc:", error);
+        });
 
         const collections = {
             vendors: collection(db, 'vendors'),
@@ -87,6 +163,7 @@ export const useWeddingData = () => {
         };
 
         const unsubscribes = [
+            unsubscribeUser, // Adicionado aqui
             onSnapshot(queries.vendors, snapshot => {
                 const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Vendor));
                 setVendors(data);
