@@ -105,7 +105,7 @@ const SettingsForm: React.FC<SettingsFormProps> = ({ onSave }) => {
                     />
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1">
                     <FormField
                         id="totalBudget"
                         label="Orçamento Total (R$)"
@@ -115,15 +115,6 @@ const SettingsForm: React.FC<SettingsFormProps> = ({ onSave }) => {
                         required
                         min="0"
                         step="0.01"
-                    />
-                    <FormField
-                        id="guestCount"
-                        label="Número de Convidados (Estimativa)"
-                        type="number"
-                        value={formData.guestCount}
-                        onChange={handleChange}
-                        required
-                        min="0"
                     />
                 </div>
 
