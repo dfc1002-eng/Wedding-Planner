@@ -152,6 +152,23 @@ const DashboardScreen: React.FC = () => {
     );
   };
 
+  const CustomTooltip = ({ active, payload }: any) => {
+    if (active && payload && payload.length) {
+      const { name, value } = payload[0].payload;
+      const total = financialSummary.totalContracted || 1;
+      const percentage = ((value / total) * 100).toFixed(1);
+
+      return (
+        <div className="bg-white p-3 border border-gray-200 shadow-md rounded-md text-sm">
+          <p className="font-semibold text-gray-800">{name}</p>
+          <p className="text-gray-600">{formatCurrency(value)}</p>
+          <p className="text-xs text-gray-500 font-medium mt-1">{percentage}% do total gasto</p>
+        </div>
+      );
+    }
+    return null;
+  };
+
   return (
     <div className="space-y-8 animate-fadeIn pb-10">
       
@@ -176,10 +193,10 @@ const DashboardScreen: React.FC = () => {
         />
         <MetricCard 
             title="Total Contratado" 
-            value={formatCurrency(financialSummary.totalContracted)} 
+            value={`${financialSummary.budgetUsage.toFixed(1)}%`} 
             icon="receipt_long" 
             colorClass="bg-purple-500 text-purple-500"
-            subtext={`${financialSummary.budgetUsage.toFixed(1)}% do orçamento utilizado`}
+            subtext={`Valor: ${formatCurrency(financialSummary.totalContracted)}`}
             progress={financialSummary.budgetUsage}
             onClick={() => navigate('/vendors')}
         />
@@ -252,8 +269,7 @@ const DashboardScreen: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700">
           <h3 className="text-sm font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-4 flex items-center gap-2">
-            <Icon name="bar_chart" className="text-lg text-brand-gold" />
-            Execução por Categoria
+            Orçamento por Categoria
           </h3>
           <div className="h-64 w-full">
             <ResponsiveContainer width="100%" height="100%">
@@ -268,8 +284,7 @@ const DashboardScreen: React.FC = () => {
                     interval={0}
                 />
                 <Tooltip formatter={(value: number) => formatCurrency(value)} />
-                <Bar dataKey="contratado" stackId="a" fill="#94A3B8" radius={[0, 4, 4, 0]} barSize={16} />
-                <Bar dataKey="pago" stackId="b" fill="#10B981" radius={[0, 4, 4, 0]} barSize={16} />
+                <Bar dataKey="contratado" fill="#D4AF37" radius={[0, 4, 4, 0]} barSize={20} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -277,16 +292,25 @@ const DashboardScreen: React.FC = () => {
 
         <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700">
           <h3 className="text-sm font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-4 flex items-center gap-2">
-             <Icon name="pie_chart" className="text-lg text-brand-gold" />
-             Distribuição de Gastos
+             Divisão do Investimento
           </h3>
           <div className="h-64 w-full flex items-center justify-center">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
-                <Pie data={pieData} cx="50%" cy="50%" innerRadius={50} outerRadius={80} paddingAngle={5} dataKey="value">
+                <Pie 
+                    data={pieData} 
+                    cx="50%" 
+                    cy="50%" 
+                    innerRadius={50} 
+                    outerRadius={70} 
+                    paddingAngle={5} 
+                    dataKey="value"
+                    label={({ percent }) => `${(percent * 100).toFixed(1)}%`}
+                    labelLine={true}
+                >
                   {pieData.map((entry, index) => <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} stroke="none" />)}
                 </Pie>
-                <Tooltip formatter={(value: number) => formatCurrency(value)} />
+                <Tooltip content={<CustomTooltip />} />
                 <Legend layout="vertical" verticalAlign="middle" align="right" wrapperStyle={{fontSize: '11px'}} />
               </PieChart>
             </ResponsiveContainer>
