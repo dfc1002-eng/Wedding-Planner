@@ -1,26 +1,28 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useWedding } from '../context/WeddingDataContext';
+import { useAuth } from '../context/AuthContext'; 
 import { Guest, GuestStatus } from '../types';
 import Icon from '../components/ui/Icon';
 import GuestStats from '../components/guests/GuestStats';
 import GuestListItem from '../components/guests/GuestListItem';
 import Tooltip from '../components/ui/Tooltip';
-import { GUEST_GROUPS } from '../constants'; // Importar GUEST_GROUPS
+import { GUEST_GROUPS } from '../constants'; 
 
 interface GuestsScreenProps {
     onAddGuest: () => void;
     onEditGuest: (guest: Guest) => void;
-    onDeleteGuest: (guestIds: string[]) => void; // Alterado para aceitar array de IDs
-    onChangeGuestsStatus: (guestIds: string[], newStatus: GuestStatus) => void; // Nova prop
+    onDeleteGuest: (guestIds: string[]) => void;
+    onChangeGuestsStatus: (guestIds: string[], newStatus: GuestStatus) => void;
 }
 
 const GuestsScreen: React.FC<GuestsScreenProps> = ({ onAddGuest, onEditGuest, onDeleteGuest, onChangeGuestsStatus }) => {
     const { guests } = useWedding();
+    const { user } = useAuth(); 
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState<GuestStatus | 'all'>('all');
     const [groupFilter, setGroupFilter] = useState<string | 'all'>('all');
     const [currentPage, setCurrentPage] = useState(1);
-    const [selectedGuestIds, setSelectedGuestIds] = useState<Set<string>>(new Set()); // Novo estado para seleção
+    const [selectedGuestIds, setSelectedGuestIds] = useState<Set<string>>(new Set()); 
     const ITEMS_PER_PAGE = 7;
 
     const filteredGuests = useMemo(() => {
@@ -41,7 +43,7 @@ const GuestsScreen: React.FC<GuestsScreenProps> = ({ onAddGuest, onEditGuest, on
     
     useEffect(() => {
         setCurrentPage(1);
-        setSelectedGuestIds(new Set()); // Limpar seleção ao mudar filtros
+        setSelectedGuestIds(new Set()); 
     }, [searchTerm, statusFilter, groupFilter]);
 
     const totalPages = Math.ceil(filteredGuests.length / ITEMS_PER_PAGE);
@@ -280,9 +282,10 @@ const GuestsScreen: React.FC<GuestsScreenProps> = ({ onAddGuest, onEditGuest, on
                                 key={guest.id}
                                 guest={guest}
                                 onEdit={() => onEditGuest(guest)}
-                                onDelete={() => onDeleteGuest([guest.id])} // Passa um array para deleção individual
+                                onDelete={() => onDeleteGuest([guest.id])} 
                                 isSelected={selectedGuestIds.has(guest.id)}
                                 onSelect={handleSelectGuest}
+                                userId={user?.uid} 
                             />
                         ))
                     ) : (

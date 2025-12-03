@@ -2,44 +2,52 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
-    // Funções Auxiliares
     function isAuthenticated() {
       return request.auth != null;
     }
 
-    // Verifica se o documento JÁ EXISTENTE pertence ao usuário
     function isOwner(userId) {
       return isAuthenticated() && request.auth.uid == userId;
     }
 
-    // Verifica se os NOVOS dados pertencem ao usuário 
     function isValidOwner() {
        return request.resource.data.userId == request.auth.uid;
     }
 
     // --- Regras por Coleção ---
 
+    // USERS (Dados do Casamento)
+    match /users/{userId} {
+      // 🔓 PÚBLICO (GET): Qualquer um com o ID pode ler (para ver nomes/data no RSVP)
+      allow get: if true;
+      // PRIVADO (LIST/WRITE): Só o dono pode listar tudo ou editar
+      allow list, write: if isOwner(userId);
+    }
+
+    // GUESTS (Convidados)
+    match /guests/{guestId} {
+      // 🔓 PÚBLICO (READ/UPDATE): Permitir RSVP
+      allow read, update: if true;
+      
+      // PRIVADO: Só o noivo(a) pode criar ou apagar convidados
+      allow create: if isValidOwner();
+      allow delete: if isOwner(resource.data.userId);
+    }
+
+    // O RESTO MANTÉM-SE ESTRITAMENTE PRIVADO
     match /vendors/{vendorId} {
       allow read, delete: if isOwner(resource.data.userId);
       allow create: if isValidOwner();
-      // 🔒 SEGURO: Só o dono pode atualizar
       allow update: if isOwner(resource.data.userId);
     }
 
     match /payments/{paymentId} {
       allow read, delete: if isOwner(resource.data.userId);
       allow create: if isValidOwner();
-      // 🔒 SEGURO: Só o dono pode atualizar
       allow update: if isOwner(resource.data.userId);
     }
 
     match /tasks/{taskId} {
-      allow read, delete: if isOwner(resource.data.userId);
-      allow create: if isValidOwner();
-      allow update: if isOwner(resource.data.userId);
-    }
-
-    match /guests/{guestId} {
       allow read, delete: if isOwner(resource.data.userId);
       allow create: if isValidOwner();
       allow update: if isOwner(resource.data.userId);

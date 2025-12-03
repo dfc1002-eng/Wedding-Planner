@@ -3,90 +3,94 @@ import { Guest, GuestStatus } from '../../types';
 import Icon from '../ui/Icon';
 import StatusChip from '../ui/StatusChip';
 import Tooltip from '../ui/Tooltip';
-import { cleanPhoneNumber } from '../../utils';
 
 interface GuestListItemProps {
     guest: Guest;
     onEdit: () => void;
     onDelete: () => void;
-    isSelected: boolean; // Nova prop
-    onSelect: (guestId: string, isSelected: boolean) => void; // Nova prop
+    isSelected: boolean;
+    onSelect: (guestId: string, isSelected: boolean) => void;
+    userId?: string;
 }
 
-const GuestListItem: React.FC<GuestListItemProps> = ({ guest, onEdit, onDelete, isSelected, onSelect }) => {
-    const cleanedPhone = guest.phone ? cleanPhoneNumber(guest.phone) : '';
+const GuestListItem: React.FC<GuestListItemProps> = ({ guest, onEdit, onDelete, isSelected, onSelect, userId }) => {
+    const rsvpLink = userId ? `${window.location.origin}/rsvp/${userId}` : '';
+    const messageText = `Olá ${guest.name}! Você está convidado(a) para o nosso casamento. Por favor, confirme sua presença aqui: ${rsvpLink}`;
+    const whatsappHref = guest.phone 
+        ? `https://wa.me/55${guest.phone.replace(/\D/g, '')}?text=${encodeURIComponent(messageText)}` 
+        : '#';
 
     return (
-        <div className="px-4 py-3 flex flex-col md:flex-row md:items-center hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
-            {/* Checkbox para seleção */}
-            <div className="flex-shrink-0 mr-3">
+        <div className="px-4 py-3 flex flex-col md:flex-row md:items-center hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors border-b border-gray-100 dark:border-gray-700 last:border-0">
+            {/* Checkbox */}
+            <div className="flex-shrink-0 mr-3 mb-2 md:mb-0">
                 <input
                     type="checkbox"
                     checked={isSelected}
                     onChange={(e) => onSelect(guest.id, e.target.checked)}
-                    className="h-4 w-4 rounded border-gray-300 text-brand-gold focus:ring-brand-gold"
+                    className="h-4 w-4 rounded border-gray-300 text-brand-gold focus:ring-brand-gold cursor-pointer"
                 />
             </div>
 
-            {/* Col 1: Nome e Grupo */}
-            <div className="flex-1 mb-3 md:mb-0">
+            {/* Nome */}
+            <div className="flex-1 mb-2 md:mb-0">
                 <p className="font-bold text-brand-gray dark:text-white flex items-center">
                     {guest.status === GuestStatus.Confirmed && (
-                        <Icon name="check_circle" className="text-brand-green mr-2" />
+                        <Icon name="check_circle" className="text-brand-green mr-2 text-sm" />
                     )}
                     {guest.name}
                 </p>
-                <p className="text-sm text-brand-gray-light dark:text-gray-400 flex items-center">
-                    <Icon name="group" className="text-base mr-1.5" />
+                <p className="text-sm text-brand-gray-light dark:text-gray-400 flex items-center mt-0.5">
+                    <Icon name="groups" className="text-sm mr-1.5 opacity-70" />
                     {guest.group}
                 </p>
             </div>
             
-            {/* Col 2: Acompanhantes */}
+            {/* Acompanhantes */}
             <div className="md:w-32 flex justify-between items-center md:justify-center mb-2 md:mb-0">
-                <span className="md:hidden text-sm font-semibold text-brand-gray-light">Acompanhantes</span>
-                <Tooltip text="Número de acompanhantes (não inclui o convidado principal)" position="top">
-                    <p className="text-sm font-bold text-brand-gray dark:text-white">
-                        {guest.plusOnes}
-                    </p>
+                <span className="md:hidden text-xs font-semibold text-gray-400 uppercase">Acompanhantes</span>
+                <Tooltip text="Número de acompanhantes" position="top">
+                    <div className="flex items-center gap-1 text-sm font-medium text-gray-600 dark:text-gray-300">
+                        <Icon name="person_add" className="text-gray-400" />
+                        <span>{guest.plusOnes || 0}</span>
+                    </div>
                 </Tooltip>
             </div>
 
-            {/* Col 3: Status */}
+            {/* Status */}
             <div className="md:w-32 flex justify-between items-center md:justify-center mb-2 md:mb-0">
-                <span className="md:hidden text-sm font-semibold text-brand-gray-light">Status</span>
-                <Tooltip text="Status da confirmação de presença" position="top">
-                    <StatusChip status={guest.status} />
-                </Tooltip>
+                <span className="md:hidden text-xs font-semibold text-gray-400 uppercase">Status</span>
+                <StatusChip status={guest.status} />
             </div>
 
-            {/* Col 4: Ações */}
-            <div className="md:w-40 flex justify-between items-center md:justify-center">
-                <span className="md:hidden text-sm font-semibold text-brand-gray-light">Ações</span>
-                <div className="flex items-center space-x-1">
-                    <Tooltip text="Enviar WhatsApp" position="top">
-                        <a
-                            href={`https://wa.me/55${cleanedPhone}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors text-brand-gray-light disabled:opacity-50 disabled:cursor-not-allowed"
-                            aria-label={`Enviar WhatsApp para ${guest.name}`}
-                            disabled={!cleanedPhone}
-                        >
-                            <Icon name="whatsapp" className="text-lg" />
-                        </a>
-                    </Tooltip>
-                    <Tooltip text="Editar Convidado" position="top">
-                        <button onClick={onEdit} className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors text-brand-gray-light" aria-label={`Editar ${guest.name}`}>
-                            <Icon name="edit" className="text-lg" />
-                        </button>
-                    </Tooltip>
-                    <Tooltip text="Excluir Convidado" position="top">
-                        <button onClick={onDelete} className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors text-brand-gray-light" aria-label={`Excluir ${guest.name}`}>
-                            <Icon name="delete" className="text-lg" />
-                        </button>
-                    </Tooltip>
-                </div>
+            {/* Ações */}
+            <div className="md:w-40 flex justify-end items-center gap-2">
+                
+                {/* BOTÃO NOVO (RSVP) */}
+                <Tooltip text="Enviar Link RSVP via WhatsApp" position="top">
+                    <a
+                        href={whatsappHref}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={`flex items-center gap-1 px-2 py-1 rounded border border-green-200 bg-green-50 text-green-600 hover:bg-green-100 hover:border-green-300 transition-all text-[10px] font-bold uppercase tracking-wide ${!guest.phone ? 'opacity-40 cursor-not-allowed pointer-events-none grayscale' : ''}`}
+                        aria-label={`Enviar RSVP para ${guest.name}`}
+                    >
+                        <Icon name="message-circle" className="text-xs" />
+                        RSVP
+                    </a>
+                </Tooltip>
+
+                <Tooltip text="Editar" position="top">
+                    <button onClick={onEdit} className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-brand-gold transition-colors">
+                        <Icon name="edit" className="text-base" />
+                    </button>
+                </Tooltip>
+
+                <Tooltip text="Excluir" position="top">
+                    <button onClick={onDelete} className="p-1.5 rounded-lg hover:bg-red-50 text-gray-400 hover:text-red-500 transition-colors">
+                        <Icon name="delete" className="text-base" />
+                    </button>
+                </Tooltip>
             </div>
         </div>
     );

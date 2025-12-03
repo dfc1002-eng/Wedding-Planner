@@ -26,6 +26,7 @@ const GuestsScreen = React.lazy(() => import('./screens/GuestsScreen.tsx'));
 const GiftListScreen = React.lazy(() => import('./screens/GiftListScreen.tsx'));
 const SettingsScreen = React.lazy(() => import('./screens/SettingsScreen.tsx'));
 const LoginScreen = React.lazy(() => import('./screens/LoginScreen.tsx'));
+const PublicRSVPScreen = React.lazy(() => import('./screens/PublicRSVPScreen')); // <--- ADICIONA ISTO
 
 import { Vendor, Payment, VendorStatus, NewVendorFormData, EditVendorData, Guest, GuestFormData, Gift, GiftFormData } from './types';
 
@@ -36,6 +37,16 @@ const LoadingFallback = () => (
     <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-brand-gold"></div>
   </div>
 );
+
+// Protected Route Component
+const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+  const { user, loading } = useAuth();
+
+  if (loading) return <LoadingFallback />;
+  if (!user) return <Navigate to="/login" replace />;
+
+  return <>{children}</>;
+};
 
 const AppLayout: React.FC = () => {
     const { user, loading } = useAuth();
@@ -177,16 +188,6 @@ const AppLayout: React.FC = () => {
         showToast(isThanked ? 'Agradecimento marcado!' : 'Agradecimento desmarcado.');
     };
 
-    if (loading) return <div className="flex items-center justify-center h-screen">Carregando...</div>;
-
-    if (!user) {
-        return (
-            <Suspense fallback={<div className="flex items-center justify-center h-screen">Carregando Login...</div>}>
-                <LoginScreen />
-            </Suspense>
-        );
-    }
-
     return (
         <div className="flex bg-gray-50 dark:bg-gray-900 min-h-screen text-brand-gray dark:text-gray-300">
             <Sidebar isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} isExpanded={isSidebarExpanded} toggleSidebar={toggleSidebar} />
@@ -225,13 +226,34 @@ const AppLayout: React.FC = () => {
 
 const App: React.FC = () => {
     return (
-        <AuthProvider>
-            <WeddingDataProvider>
-                <BrowserRouter>
-                    <AppLayout />
-                </BrowserRouter>
-            </WeddingDataProvider>
-        </AuthProvider>
+        <BrowserRouter>
+            <AuthProvider>
+                <WeddingDataProvider>
+                   <Routes>
+                     {/* Rotas Públicas */}
+                     <Route path="/login" element={
+                       <Suspense fallback={<LoadingFallback />}>
+                         <LoginScreen />
+                       </Suspense>
+                     } />
+                     
+                     {/* 👇 NOVA ROTA PÚBLICA DE RSVP 👇 */}
+                     <Route path="/rsvp/:userId" element={
+                       <Suspense fallback={<LoadingFallback />}>
+                         <PublicRSVPScreen />
+                       </Suspense>
+                     } />
+
+                     {/* App Principal */}
+                     <Route path="/*" element={
+                       <ProtectedRoute>
+                         <AppLayout />
+                       </ProtectedRoute>
+                     } />
+                   </Routes>
+                </WeddingDataProvider>
+            </AuthProvider>
+        </BrowserRouter>
     );
 };
 
