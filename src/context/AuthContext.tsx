@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import {
   getAuth,
@@ -8,13 +7,13 @@ import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
 } from 'firebase/auth';
-import { auth } from '../firebase'; // Assuming firebase config is in 'src/firebase.ts'
+import { auth } from '../firebase';
 
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  login: typeof signInWithEmailAndPassword;
-  register: typeof createUserWithEmailAndPassword;
+  signIn: (email: string, password: string) => Promise<any>;
+  signUp: (email: string, password: string) => Promise<any>;
   logout: () => Promise<void>;
 }
 
@@ -33,13 +32,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => unsubscribe();
   }, []);
 
+  const signIn = (email: string, password: string) => signInWithEmailAndPassword(auth, email, password);
+  const signUp = (email: string, password: string) => createUserWithEmailAndPassword(auth, email, password);
   const logout = () => signOut(auth);
 
   const value = {
     user,
     loading,
-    login: signInWithEmailAndPassword.bind(null, auth),
-    register: createUserWithEmailAndPassword.bind(null, auth),
+    signIn,
+    signUp,
     logout,
   };
 
