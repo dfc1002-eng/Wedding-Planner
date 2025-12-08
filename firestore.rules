@@ -2,64 +2,73 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
-    // Função para verificar se o usuário está logado
+    // --- FUNÇÕES AUXILIARES ---
+
+    // Verifica se o usuário está logado
     function isAuthenticated() {
       return request.auth != null;
     }
 
-    // Função para verificar se o usuário é dono do documento (pelo UID do Auth)
+    // Verifica se o usuário logado é o dono do documento (pelo ID do usuário na URL/Coleção)
     function isOwner(userId) {
       return isAuthenticated() && request.auth.uid == userId;
     }
 
-    // Verifica se o documento existente pertence ao usuário (pelo campo userId nos dados)
+    // Verifica se o documento que já existe no banco pertence ao usuário logado
     function isResourceOwner() {
       return isAuthenticated() && resource.data.userId == request.auth.uid;
     }
 
-    // Verifica se os NOVOS dados pertencem ao usuário (Para criar)
+    // Verifica se os dados que estão sendo criados pertencem ao usuário logado
     function isValidOwner() {
        return request.resource.data.userId == request.auth.uid;
     }
 
-    // --- REGRAS ---
+    // --- REGRAS DAS COLEÇÕES ---
 
-    // 1. Coleção USERS (Permite Onboarding)
+    // 1. Coleção USERS
     match /users/{userId} {
-      // Público pode ler (necessário para RSVP ver nomes)
+      // Público pode ler apenas dados específicos (necessário para o RSVP saber os nomes dos noivos)
       allow get: if true;
-      // Dono pode fazer tudo (criar, listar, editar)
+      
+      // O dono da conta pode fazer tudo (listar, criar, editar, apagar)
       allow list, create, update, delete: if isOwner(userId);
     }
 
-    // 2. Coleção GUESTS (Permite RSVP Público)
+    // 2. Coleção GUESTS (Convidados) - AQUI ESTAVA O PERIGO
     match /guests/{guestId} {
-      // Público pode ler e atualizar (confirmar presença)
-      allow read, update: if true;
-      // Só dono cria ou apaga
+      // Qualquer um pode ler (necessário para buscar o convite no RSVP)
+      allow read: if true;
+
+      // ATUALIZAÇÃO SEGURA (A CORREÇÃO):
+      // O dono do casamento (isResourceOwner) pode editar qualquer campo.
+      // O público (convidados) só pode alterar os campos 'status' e 'confirmedPlusOnes'.
+      // A função hasOnly garante que nenhum outro campo (como 'name') seja tocado.
+      allow update: if isResourceOwner() || 
+                    (request.resource.data.diff(resource.data).affectedKeys()
+                    .hasOnly(['status', 'confirmedPlusOnes']));
+
+      // Apenas o dono pode criar novos convidados ou excluir existentes
       allow create: if isValidOwner();
       allow delete: if isResourceOwner();
     }
 
-    // 3. Outras Coleções (Privadas)
+    // 3. Outras Coleções (Totalmente Privadas)
+    // Apenas o dono dos dados pode ler ou escrever
     match /vendors/{vendorId} {
-      allow read, delete, update: if isResourceOwner();
-      allow create: if isValidOwner();
+      allow read, write: if isResourceOwner() || isValidOwner();
     }
     
     match /payments/{paymentId} {
-      allow read, delete, update: if isResourceOwner();
-      allow create: if isValidOwner();
+      allow read, write: if isResourceOwner() || isValidOwner();
     }
     
     match /tasks/{taskId} {
-      allow read, delete, update: if isResourceOwner();
-      allow create: if isValidOwner();
+      allow read, write: if isResourceOwner() || isValidOwner();
     }
     
     match /gifts/{giftId} {
-      allow read, delete, update: if isResourceOwner();
-      allow create: if isValidOwner();
+      allow read, write: if isResourceOwner() || isValidOwner();
     }
   }
 }
