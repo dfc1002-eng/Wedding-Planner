@@ -89,3 +89,11 @@ export const createPaymentsFromParcels = (vendorId: string, parcels: Parcel[]): 
         };
     });
 };
+
+export const normalizeText = (text: string): string => {
+    return text
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toUpperCase()
+        .trim();
+};

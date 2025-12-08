@@ -44,8 +44,8 @@ import {
 } from '../types';
 import { MOCK_WEDDING_DATA } from '../constants';
 import { DEFAULT_TASKS_DATA } from '../constants/defaultTasks';
+import { createPaymentsFromParcels, normalizeText } from '../utils';
 import { getPaymentNotifications } from '../notifications';
-import { createPaymentsFromParcels } from '../utils';
 
 export const useWeddingData = () => {
     const { user } = useAuth();
@@ -384,6 +384,7 @@ export const useWeddingData = () => {
         const guestRef = doc(collection(db, 'guests'));
         const newGuest: Omit<Guest, 'id'> = {
             ...data,
+            nameNormalized: normalizeText(data.name),
             userId: user.uid,
         };
         batch.set(guestRef, newGuest);
@@ -407,7 +408,11 @@ export const useWeddingData = () => {
 
         const batch = writeBatch(db);
         const guestRef = doc(db, 'guests', guestId);
-        batch.update(guestRef, data as Partial<Guest>);
+        const updateData = {
+            ...data as Partial<Guest>,
+            nameNormalized: normalizeText(data.name)
+        };
+        batch.update(guestRef, updateData);
 
         const gift = gifts.find(g => g.guestId === guestId);
         if (gift) {

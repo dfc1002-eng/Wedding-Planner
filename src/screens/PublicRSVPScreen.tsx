@@ -4,6 +4,7 @@ import { doc, getDoc, collection, query, where, getDocs, updateDoc } from 'fireb
 import { db } from '../firebase';
 import { WeddingData, Guest, GuestStatus } from '../types';
 import Icon from '../components/ui/Icon';
+import { normalizeText } from '../utils';
 
 const PublicRSVPScreen: React.FC = () => {
   const { userId } = useParams<{ userId: string }>();
@@ -25,7 +26,7 @@ const PublicRSVPScreen: React.FC = () => {
         if (docSnap.exists()) {
           const data = docSnap.data();
           // Garante que a data é um objeto Date válido
-          const weddingDate = data.weddingDate?.toDate ? data.weddingDate.toDate() : new Date();
+          const weddingDate = data.weddingData?.toDate ? data.weddingData.toDate() : new Date();
           setWeddingData({ ...data, weddingDate } as WeddingData);
         } else {
           setError('Casamento não encontrado.');
@@ -49,11 +50,12 @@ const PublicRSVPScreen: React.FC = () => {
     setFoundGuest(null);
 
     try {
-      // Busca exata pelo nome
+      const searchNormalized = normalizeText(guestName);
+      // Busca pelo campo normalizado
       const q = query(
         collection(db, 'guests'), 
         where('userId', '==', userId), 
-        where('name', '==', guestName.trim())
+        where('nameNormalized', '==', searchNormalized)
       );
       
       const snapshot = await getDocs(q);
