@@ -40,6 +40,15 @@ export const MOCK_WEDDING_DATA: WeddingData = {
     weddingWebsite: 'https://jessica-e-fernando.com',
 };
 
+export const INITIAL_WEDDING_DATA: WeddingData = {
+    coupleNames: ['', ''],
+    weddingDate: new Date(),
+    guestCount: 0,
+    totalBudget: 0,
+    venueName: '',
+    weddingWebsite: '',
+};
+
 const vendor1Id = 'vendor-1';
 const vendor2Id = 'vendor-2';
 const vendor3Id = 'vendor-3';

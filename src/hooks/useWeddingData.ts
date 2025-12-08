@@ -39,14 +39,14 @@ import {
     NextPayment,
     Addendum,
 } from '../types';
-import { MOCK_WEDDING_DATA } from '../constants';
+import { MOCK_WEDDING_DATA, INITIAL_WEDDING_DATA } from '../constants';
 import { DEFAULT_TASKS_DATA } from '../constants/defaultTasks';
 import { createPaymentsFromParcels, normalizeText } from '../utils';
 import { getPaymentNotifications } from '../notifications';
 
 export const useWeddingData = () => {
     const { user } = useAuth();
-    const [weddingData, setWeddingDataState] = useState<WeddingData>(MOCK_WEDDING_DATA);
+    const [weddingData, setWeddingDataState] = useState<WeddingData>(INITIAL_WEDDING_DATA);
     const [vendors, setVendors] = useState<Vendor[]>([]);
     const [payments, setPayments] = useState<Payment[]>([]);
     const [tasks, setTasks] = useState<Task[]>([]);

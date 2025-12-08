@@ -1,5 +1,5 @@
 import React, { useState, useEffect, Suspense } from 'react';
-import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { WeddingDataProvider, useWedding } from './context/WeddingDataContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
 
@@ -49,8 +49,9 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 };
 
 const AppLayout: React.FC = () => {
-    const { user, loading } = useAuth();
+    const { user, loading: authLoading } = useAuth();
     const navigate = useNavigate();
+    const location = useLocation();
     const [isDarkMode, setIsDarkMode] = useState(() => localStorage.getItem('theme') === 'dark');
     const [isSidebarExpanded, setIsSidebarExpanded] = useState(() => {
         const savedState = localStorage.getItem('sidebarExpanded');
@@ -71,7 +72,7 @@ const AppLayout: React.FC = () => {
     const [toast, setToast] = useState<{ id: number; message: string; type: 'success' | 'error' } | null>(null);
     
     const { 
-        weddingData, vendors, payments, tasks, paymentNotifications,
+        weddingData, vendors, payments, tasks, paymentNotifications, loading: dataLoading,
         handleToggleTask, handleAddVendor, handleEditVendor, handleDeleteVendor,
         handleRegisterPayment, handleDeletePayment, handleAddGuest, handleEditGuest,
         handleDeleteGuest, handleChangeGuestsStatus, handleUpdateGift, handleToggleThankYouSent,
@@ -92,9 +93,13 @@ const AppLayout: React.FC = () => {
     useEffect(() => { localStorage.setItem('sidebarExpanded', String(isSidebarExpanded)); }, [isSidebarExpanded]);
 
     useEffect(() => {
-        const hasOnboarded = localStorage.getItem('onboardingCompleted');
-        if (!hasOnboarded && user && !loading) setIsOnboardingOpen(true);
-    }, [user, loading]);
+        // Verifica se é um cadastro novo (nomes vazios) e força o onboarding
+        const isNewData = weddingData.coupleNames[0] === '' && weddingData.coupleNames[1] === '';
+        
+        if (!authLoading && !dataLoading && user && isNewData && location.pathname !== '/settings') {
+            setIsOnboardingOpen(true);
+        }
+    }, [authLoading, dataLoading, user, weddingData.coupleNames, location.pathname]);
 
     const handleCloseOnboarding = () => {
         localStorage.setItem('onboardingCompleted', 'true');
