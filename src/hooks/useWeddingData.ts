@@ -1,7 +1,4 @@
-
-"use client";
-
-import { useState, useMemo, useCallback, useEffect } from 'react';
+import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { differenceInDays } from 'date-fns';
 import {
     collection,
@@ -56,60 +53,43 @@ export const useWeddingData = () => {
     const [guests, setGuests] = useState<Guest[]>([]);
     const [gifts, setGifts] = useState<Gift[]>([]);
     const [loading, setLoading] = useState(true);
+    
+    // Ref para controlar a origem das mudanças e evitar loops de salvamento do Firestore
+    const isDirty = useRef(false);
 
-    // Wrapper para atualizar localmente e no Firestore
-    const setWeddingData = useCallback(async (data: WeddingData | ((prev: WeddingData) => WeddingData)) => {
+    // Wrapper para atualizar localmente e marcar para salvamento
+    const setWeddingData = useCallback((data: WeddingData | ((prev: WeddingData) => WeddingData)) => {
         if (!user) return;
-        
-        let newData: WeddingData;
-        
-        // Determinar o novo valor (se for função ou objeto direto)
-        if (typeof data === 'function') {
-             // Precisamos acessar o estado atual. 
-             // ATENÇÃO: Em hooks, acessar state dentro de callback pode pegar valor antigo se não estiver na dependência.
-             // Mas aqui vamos usar o setWeddingDataState funcional para garantir.
-             setWeddingDataState(prev => {
-                newData = data(prev);
-                
-                // Dispara o salvamento no Firestore FORA do render loop
-                // Usando setTimeout para sair do ciclo síncrono do React state update
-                setTimeout(async () => {
-                    console.log("Saving to Firestore (via function update):", newData);
-                    try {
-                        const userRef = doc(db, 'users', user.uid);
-                        // Garantir que datas sejam salvas corretamente
-                        const dataToSave = {
-                            ...newData,
-                            weddingDate: newData.weddingDate instanceof Date ? newData.weddingDate : new Date(newData.weddingDate)
-                        };
-                        await setDoc(userRef, { weddingData: dataToSave }, { merge: true });
-                        console.log("Firestore save success!");
-                    } catch (err) {
-                        console.error("Firestore save error:", err);
-                    }
-                }, 0);
+        isDirty.current = true; // Marca que a mudança veio do usuário/frontend
+        setWeddingDataState(data);
+    }, [user]);
 
-                return newData;
-             });
-        } else {
-            newData = data;
-            setWeddingDataState(newData);
-            
-            console.log("Saving to Firestore (direct object):", newData);
-            try {
-                const userRef = doc(db, 'users', user.uid);
-                 const dataToSave = {
-                    ...newData,
-                    weddingDate: newData.weddingDate instanceof Date ? newData.weddingDate : new Date(newData.weddingDate)
-                };
-                await setDoc(userRef, { weddingData: dataToSave }, { merge: true });
-                console.log("Firestore save success!");
-            } catch (err) {
-                console.error("Firestore save error:", err);
-            }
+    // Efeito para salvar weddingData no Firestore com debounce
+    useEffect(() => {
+        if (!user || !isDirty.current) {
+            // Só salva se houver usuário logado e se a mudança foi iniciada pelo frontend (isDirty)
+            return;
         }
 
-    }, [user]);
+        const timer = setTimeout(async () => {
+            console.log("Saving weddingData to Firestore with debounce:", weddingData);
+            try {
+                const userRef = doc(db, 'users', user.uid);
+                const dataToSave = {
+                    ...weddingData,
+                    // Garante que weddingDate seja um objeto Date antes de salvar
+                    weddingDate: weddingData.weddingDate instanceof Date ? weddingData.weddingDate : new Date(weddingData.weddingDate)
+                };
+                await setDoc(userRef, { weddingData: dataToSave }, { merge: true });
+                console.log("weddingData Firestore save success!");
+                isDirty.current = false; // Reseta a flag após o salvamento bem-sucedido
+            } catch (err) {
+                console.error("weddingData Firestore save error:", err);
+            }
+        }, 2000); // 2 segundos de debounce
+
+        return () => clearTimeout(timer); // Limpa o timer se weddingData mudar antes do debounce
+    }, [weddingData, user]);
 
 
     useEffect(() => {
@@ -134,6 +114,8 @@ export const useWeddingData = () => {
                 const data = docSnap.data();
                 console.log("Received update from Firestore (User Doc):", data);
                 if (data.weddingData) {
+                    // Quando a atualização vem do Firestore, não consideramos 'dirty'
+                    isDirty.current = false;
                     setWeddingDataState({
                         ...data.weddingData,
                         weddingDate: data.weddingData.weddingDate?.toDate ? data.weddingData.weddingDate.toDate() : new Date(data.weddingData.weddingDate),
