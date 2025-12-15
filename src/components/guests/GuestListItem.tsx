@@ -49,11 +49,18 @@ const GuestListItem: React.FC<GuestListItemProps> = ({ guest, onEdit, onDelete, 
             {/* Acompanhantes */}
             <div className="md:w-32 flex justify-between items-center md:justify-center mb-2 md:mb-0">
                 <span className="md:hidden text-xs font-semibold text-gray-400 uppercase">Acompanhantes</span>
-                <Tooltip text="Número de acompanhantes" position="top">
-                    <div className="flex items-center gap-1 text-sm font-medium text-gray-600 dark:text-gray-300">
-                        <Icon name="person_add" className="text-gray-400" />
-                        <span>{guest.plusOnes || 0}</span>
-                    </div>
+                <Tooltip text="Acompanhantes confirmados / limite permitido" position="top">
+                    {guest.status === GuestStatus.Confirmed ? (
+                        <div className="flex items-center font-medium text-gray-900 dark:text-gray-100">
+                            <span className="text-green-600 mr-1">{guest.confirmedPlusOnes || 0}</span>
+                            <span className="text-gray-400 mx-1">/</span>
+                            <span className="text-gray-400">{guest.plusOnes || 0}</span>
+                        </div>
+                    ) : (
+                        <div className="text-gray-400 text-xs">
+                            Max: {guest.plusOnes || 0}
+                        </div>
+                    )}
                 </Tooltip>
             </div>
 

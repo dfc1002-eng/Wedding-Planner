@@ -15,6 +15,7 @@ const PublicRSVPScreen: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
+  const [companionsCount, setCompanionsCount] = useState(0); // Novo estado para acompanhantes
 
   useEffect(() => {
     const fetchWeddingInfo = async () => {
@@ -48,6 +49,7 @@ const PublicRSVPScreen: React.FC = () => {
     setLoading(true);
     setError('');
     setFoundGuest(null);
+    setCompanionsCount(0); // Reset companions count on new search
 
     try {
       const searchNormalized = normalizeText(guestName);
@@ -63,6 +65,12 @@ const PublicRSVPScreen: React.FC = () => {
       if (!snapshot.empty) {
         const guestData = snapshot.docs[0].data() as Guest;
         setFoundGuest({ ...guestData, id: snapshot.docs[0].id });
+        // Pre-fill companionsCount if guest has previously confirmed with companions
+        if (guestData.status === GuestStatus.Confirmed && typeof guestData.confirmedPlusOnes === 'number') {
+            setCompanionsCount(guestData.confirmedPlusOnes);
+        } else {
+            setCompanionsCount(0);
+        }
       } else {
         setError('Nome não encontrado na lista. Verifique a grafia exata.');
       }
@@ -79,7 +87,16 @@ const PublicRSVPScreen: React.FC = () => {
     setLoading(true);
     try {
       const guestRef = doc(db, 'guests', foundGuest.id);
-      await updateDoc(guestRef, { status });
+      const updateData: { status: GuestStatus; confirmedPlusOnes?: number } = { status };
+
+      if (status === GuestStatus.Confirmed) {
+        updateData.confirmedPlusOnes = companionsCount;
+      } else {
+        // If declining, reset confirmedPlusOnes
+        updateData.confirmedPlusOnes = 0; 
+      }
+
+      await updateDoc(guestRef, updateData);
       setSuccess(true);
     } catch (err) {
       console.error(err);
@@ -161,6 +178,27 @@ const PublicRSVPScreen: React.FC = () => {
                         <p className="text-xl font-bold text-gray-800 mt-1">{foundGuest.name}</p>
                     </div>
 
+                    {/* Dropdown de acompanhantes se permitido e ainda não confirmado */}
+                    {foundGuest.plusOnes > 0 && foundGuest.status !== GuestStatus.Declined && (
+                        <div className="text-left space-y-2">
+                            <label htmlFor="companions-select" className="block text-sm font-medium text-gray-700 ml-1">
+                                Você pode levar acompanhantes. Quantos irão com você?
+                            </label>
+                            <select
+                                id="companions-select"
+                                value={companionsCount}
+                                onChange={(e) => setCompanionsCount(parseInt(e.target.value, 10))}
+                                className="w-full p-3 border border-gray-300 bg-white rounded-xl focus:ring-2 focus:ring-brand-gold focus:border-brand-gold outline-none transition-all"
+                            >
+                                {Array.from({ length: foundGuest.plusOnes + 1 }, (_, i) => (
+                                    <option key={i} value={i}>
+                                        {i === 0 ? '0 (Irei sozinho)' : `${i} Pessoa(s)`}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                    )}
+
                     <div className="grid grid-cols-2 gap-3">
                         <button 
                             onClick={() => handleConfirm(GuestStatus.Declined)}
@@ -179,7 +217,7 @@ const PublicRSVPScreen: React.FC = () => {
                     </div>
                     
                     <button 
-                        onClick={() => { setFoundGuest(null); setGuestName(''); setError(''); }}
+                        onClick={() => { setFoundGuest(null); setGuestName(''); setError(''); setCompanionsCount(0); }}
                         className="text-xs text-gray-400 hover:text-brand-gold underline mt-4"
                     >
                         Não é você? Voltar

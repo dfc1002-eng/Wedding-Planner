@@ -1,11 +1,13 @@
 import { Task } from '../types';
 
 export const DEFAULT_TASKS_DATA: Omit<Task, 'id' | 'userId' | 'createdAt'>[] = [
-   // 12-18 MESES
+   // 12-18 MESES ANTES - REORDERED
    { title: "Fazer a lista de convidados (prévia)", timeframe: "12-18 MESES ANTES", completed: false, isImportant: true },
    { title: "Definir a data do casamento", timeframe: "12-18 MESES ANTES", completed: false, isImportant: true },
-   { title: "Contratar Assessoria e Cerimonial", timeframe: "12-18 MESES ANTES", completed: false, isImportant: true, createsVendorCategory: "Assessoria" },
+   { title: "Contratar assessoria e cerimonial", timeframe: "12-18 MESES ANTES", completed: false, isImportant: true, createsVendorCategory: "Assessoria" },
    { title: "Escolher o local do casamento (Cerimônia e Festa)", timeframe: "12-18 MESES ANTES", completed: false, isImportant: true, createsVendorCategory: "Espaço/Local" },
+
+   // Remaining 12-18 MESES ANTES tasks (excluding the 4 moved ones, maintaining their original order)
    { title: "Escolher Fotógrafo", timeframe: "12-18 MESES ANTES", completed: false, isImportant: true, createsVendorCategory: "Fotografia" },
    { title: "Escolher DJ", timeframe: "12-18 MESES ANTES", completed: false, isImportant: true, createsVendorCategory: "Música/DJ" },
    { title: "Escolher o Decorador", timeframe: "12-18 MESES ANTES", completed: false, isImportant: true, createsVendorCategory: "Decoração" },
