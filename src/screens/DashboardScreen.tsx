@@ -176,7 +176,7 @@ const DashboardScreen: React.FC = () => {
       <div className="flex justify-between items-end">
         <div>
           <h1 className="text-3xl font-title text-brand-gray dark:text-white">Visão Geral</h1>
-          <p className="text-gray-500 dark:text-gray-400">Olá, {weddingData.coupleNames[0]} & {weddingData.coupleNames[1]}! Aqui está o resumo do seu grande dia.</p>
+          <p className="text-gray-500 dark:text-gray-400">Acompanhe a saúde financeira do seu casamento.</p>
         </div>
       </div>
 
