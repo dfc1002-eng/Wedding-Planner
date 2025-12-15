@@ -28,11 +28,11 @@ const VendorsScreen: React.FC<VendorsScreenProps> = ({ onAddVendor, onEditVendor
 
     return (
         <div>
-            <div className="flex justify-between items-center mb-6">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
                 <h2 className="text-3xl font-title text-brand-gray dark:text-white">Meus Fornecedores</h2>
                 <button
                     onClick={onAddVendor}
-                    className="bg-brand-pink-light hover:bg-brand-pink text-brand-gray dark:bg-brand-gold dark:hover:bg-opacity-80 dark:text-gray-900 font-bold py-2 px-4 rounded-lg flex items-center space-x-2 transition-colors"
+                    className="w-full md:w-auto justify-center bg-brand-pink-light hover:bg-brand-pink text-brand-gray dark:bg-brand-gold dark:hover:bg-opacity-80 dark:text-gray-900 font-bold py-2 px-4 rounded-lg flex items-center space-x-2 transition-colors"
                 >
                     <Icon name="add" />
                     <span>Novo Fornecedor</span>

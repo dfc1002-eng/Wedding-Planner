@@ -3,7 +3,6 @@ import { useWedding } from '../context/WeddingDataContext';
 import { useAuth } from '../context/AuthContext'; 
 import { Guest, GuestStatus } from '../types';
 import Icon from '../components/ui/Icon';
-import GuestStats from '../components/guests/GuestStats';
 import GuestListItem from '../components/guests/GuestListItem';
 import Tooltip from '../components/ui/Tooltip';
 import { GUEST_GROUPS } from '../constants'; 
@@ -149,15 +148,34 @@ const GuestsScreen: React.FC<GuestsScreenProps> = ({ onAddGuest, onEditGuest, on
         URL.revokeObjectURL(url);
     };
 
+    const stats = useMemo(() => {
+        return guests.reduce((acc, guest) => {
+            acc.totalPotentialPeople += 1 + guest.plusOnes;
+            acc.totalGuestsCount += 1; // Count of invitations sent (number of unique guests)
+            if (guest.status === GuestStatus.Confirmed) {
+                acc.confirmedCount += 1;
+                acc.totalPeopleConfirmed += 1 + (guest.confirmedPlusOnes || 0);
+            }
+            else if (guest.status === GuestStatus.Pending) acc.pendingCount += 1;
+            else if (guest.status === GuestStatus.Declined) acc.declinedCount += 1;
+            return acc;
+        }, { totalPotentialPeople: 0, totalGuestsCount: 0, confirmedCount: 0, pendingCount: 0, declinedCount: 0, totalPeopleConfirmed: 0 });
+    }, [guests]);
+
+    const totalEstimativa = stats.totalPotentialPeople;
+    const convitesEnviados = stats.totalGuestsCount; // Renamed for clarity with new card text
+    const pessoasConfirmadas = stats.totalPeopleConfirmed;
+    const recusaramCount = stats.declinedCount;
+
     return (
         <div>
-            <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 mb-6">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
                 <h2 className="text-3xl font-title text-brand-gray dark:text-white">Lista de Convidados</h2>
-                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                <div className="flex flex-col md:flex-row items-stretch md:items-center gap-3">
                      <Tooltip text="Exportar lista de convidados para um arquivo CSV.">
                         <button
                             onClick={handleExportCSV}
-                            className="bg-white hover:bg-gray-100 text-brand-gray dark:bg-gray-700 dark:hover:bg-gray-600 font-bold py-2 px-4 rounded-lg flex items-center justify-center space-x-2 transition-colors border dark:border-gray-600"
+                            className="w-full md:w-auto bg-white hover:bg-gray-100 text-brand-gray dark:bg-gray-700 dark:hover:bg-gray-600 font-bold py-2 px-4 rounded-lg flex items-center justify-center space-x-2 transition-colors border dark:border-gray-600"
                         >
                             <Icon name="download" />
                             <span>Exportar CSV</span>
@@ -166,7 +184,7 @@ const GuestsScreen: React.FC<GuestsScreenProps> = ({ onAddGuest, onEditGuest, on
                     <Tooltip text="Cadastrar um novo convidado na sua lista">
                         <button
                             onClick={onAddGuest}
-                            className="bg-brand-pink-light hover:bg-brand-pink text-brand-gray dark:bg-brand-gold dark:hover:bg-opacity-80 dark:text-gray-900 font-bold py-2 px-4 rounded-lg flex items-center justify-center space-x-2 transition-colors"
+                            className="w-full md:w-auto bg-brand-pink-light hover:bg-brand-pink text-brand-gray dark:bg-brand-gold dark:hover:bg-opacity-80 dark:text-gray-900 font-bold py-2 px-4 rounded-lg flex items-center justify-center space-x-2 transition-colors"
                         >
                             <Icon name="add" />
                             <span>Adicionar Convidado</span>
@@ -175,9 +193,56 @@ const GuestsScreen: React.FC<GuestsScreenProps> = ({ onAddGuest, onEditGuest, on
                 </div>
             </div>
             
-            <GuestStats guests={guests} />
+            {/* Container de Estatísticas - Grid Responsivo */}
+            <div className="w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                
+                {/* Card 1 - Estimativa Total */}
+                <div className="bg-white dark:bg-gray-800 p-4 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 flex items-center gap-4 w-full">
+                    <div className="p-3 rounded-full bg-purple-100 text-purple-600">
+                        <Icon name="groups" />
+                    </div>
+                    <div>
+                        <p className="text-2xl font-bold text-gray-800 dark:text-gray-100">{totalEstimativa}</p>
+                        <p className="text-xs text-gray-500 font-medium uppercase tracking-wide">Estimativa Total</p>
+                    </div>
+                </div>
 
-            <div className="bg-white dark:bg-gray-800 p-4 md:p-6 rounded-xl shadow-md mt-6">
+                {/* Card 2 - Convites Enviados */}
+                <div className="bg-white dark:bg-gray-800 p-4 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 flex items-center gap-4 w-full">
+                    <div className="p-3 rounded-full bg-blue-100 text-blue-600">
+                        <Icon name="send" />
+                    </div>
+                    <div>
+                        <p className="text-2xl font-bold text-gray-800 dark:text-gray-100">{convitesEnviados}</p>
+                        <p className="text-xs text-gray-500 font-medium uppercase tracking-wide">Convites Enviados</p>
+                    </div>
+                </div>
+
+                {/* Card 3 - Pessoas Confirmadas */}
+                <div className="bg-white dark:bg-gray-800 p-4 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 flex items-center gap-4 w-full">
+                    <div className="p-3 rounded-full bg-green-100 text-green-600">
+                        <Icon name="check_circle" />
+                    </div>
+                    <div>
+                        <p className="text-2xl font-bold text-gray-800 dark:text-gray-100">{pessoasConfirmadas}</p>
+                        <p className="text-xs text-gray-500 font-medium uppercase tracking-wide">Pessoas Confirmadas</p>
+                    </div>
+                </div>
+
+                {/* Card 4 - Recusaram */}
+                <div className="bg-white dark:bg-gray-800 p-4 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 flex items-center gap-4 w-full">
+                    <div className="p-3 rounded-full bg-red-100 text-red-600">
+                        <Icon name="cancel" />
+                    </div>
+                    <div>
+                        <p className="text-2xl font-bold text-gray-800 dark:text-gray-100">{recusaramCount}</p>
+                        <p className="text-xs text-gray-500 font-medium uppercase tracking-wide">Recusaram</p>
+                    </div>
+                </div>
+
+            </div>
+
+            <div className="bg-white dark:bg-gray-800 p-4 md:p-6 rounded-xl shadow-md mt-6 overflow-x-auto">
                 <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-4">
                     {/* Search Input */}
                     <div className="relative w-full md:max-w-xs">
