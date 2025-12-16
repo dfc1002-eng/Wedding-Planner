@@ -20,8 +20,11 @@ const GuestListItem: React.FC<GuestListItemProps> = ({ guest, onEdit, onDelete, 
     const rsvpLink = identifier ? `${window.location.origin}/rsvp/${identifier}` : '';
     
     const messageText = `Olá ${guest.name}! Você está convidado(a) para o nosso casamento. Por favor, confirme sua presença aqui: ${rsvpLink}`;
-    const whatsappHref = guest.phone 
-        ? `https://wa.me/55${guest.phone.replace(/\D/g, '')}?text=${encodeURIComponent(messageText)}` 
+    
+    // Lógica CORRIGIDA para o link do WhatsApp
+    const cleanPhone = guest.phone ? guest.phone.replace(/\D/g, '') : ''; // Remove tudo que não for número (remove +, -, espaço)
+    const whatsappHref = cleanPhone 
+        ? `https://wa.me/${cleanPhone}?text=${encodeURIComponent(messageText)}` 
         : '#';
 
     return (
@@ -83,7 +86,7 @@ const GuestListItem: React.FC<GuestListItemProps> = ({ guest, onEdit, onDelete, 
                         href={whatsappHref}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className={`flex items-center gap-1 px-2 py-1 rounded border border-green-200 bg-green-50 text-green-600 hover:bg-green-100 hover:border-green-300 transition-all text-[10px] font-bold uppercase tracking-wide ${!guest.phone ? 'opacity-40 cursor-not-allowed pointer-events-none grayscale' : ''}`}
+                        className={`flex items-center gap-1 px-2 py-1 rounded border border-green-200 bg-green-50 text-green-600 hover:bg-green-100 hover:border-green-300 transition-all text-[10px] font-bold uppercase tracking-wide ${!cleanPhone ? 'opacity-40 cursor-not-allowed pointer-events-none grayscale' : ''}`}
                         aria-label={`Enviar RSVP para ${guest.name}`}
                     >
                         <Icon name="message-circle" className="text-xs" />
