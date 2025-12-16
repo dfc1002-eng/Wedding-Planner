@@ -12,19 +12,21 @@ interface EditGiftModalProps {
 }
 
 const EditGiftModal: React.FC<EditGiftModalProps> = ({ gift, onClose, onSave }) => {
-    const [amount, setAmount] = useState(gift.amount);
+    const [amount, setAmount] = useState<number | string>(gift.amount === 0 ? '' : gift.amount); // Inicializa com string vazia se for 0
     const [description, setDescription] = useState(gift.description);
     const [thankYouSent, setThankYouSent] = useState(gift.thankYouSent);
 
     useEffect(() => {
-        setAmount(gift.amount);
+        setAmount(gift.amount === 0 ? '' : gift.amount); // Também atualiza com string vazia se for 0
         setDescription(gift.description);
         setThankYouSent(gift.thankYouSent);
     }, [gift]);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        onSave(gift.id, { amount, description, thankYouSent });
+        // Garante que o valor salvo é um número, mesmo que o estado seja uma string vazia
+        const finalAmount = typeof amount === 'string' && amount === '' ? 0 : parseFloat(amount as string) || 0;
+        onSave(gift.id, { amount: finalAmount, description, thankYouSent });
     };
 
     return (
@@ -47,11 +49,15 @@ const EditGiftModal: React.FC<EditGiftModalProps> = ({ gift, onClose, onSave }) 
                                 id="amount"
                                 label="Valor do Presente (R$)"
                                 type="number"
-                                value={amount}
-                                onChange={(e) => setAmount(parseFloat(e.target.value) || 0)}
+                                value={amount} // Agora o estado já trata o 0 como vazio
+                                onChange={(e) => {
+                                    const val = e.target.value;
+                                    setAmount(val === '' ? '' : parseFloat(val) || 0); // Define '' se vazio, ou número
+                                }}
                                 required
                                 min="0"
                                 step="0.01"
+                                placeholder="0.00"
                             />
                            
                             <FormField
