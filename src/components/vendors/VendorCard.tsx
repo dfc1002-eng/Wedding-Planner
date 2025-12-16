@@ -1,7 +1,7 @@
 import React, { useState, useRef, ChangeEvent } from 'react';
 import { format as formatDate } from 'date-fns';
 import { Vendor, Payment, PaymentStatus } from '../../types';
-import { formatCurrency, getCategoryIcon, cleanPhoneNumber } from '../../utils';
+import { formatCurrency, formatCurrencyNoCents, getCategoryIcon, cleanPhoneNumber } from '../../utils';
 import StatusChip from '../ui/StatusChip';
 import Icon from '../ui/Icon';
 import Tooltip from '../ui/Tooltip';
@@ -92,23 +92,29 @@ const VendorCard: React.FC<VendorCardProps> = ({ vendor, payments, isExpanded, o
 
             <div className="my-4 border-t border-gray-100 dark:border-gray-700"></div>
 
-            <div className="space-y-2 text-sm">
+            {/* ALTERAÇÕES:
+                1. 'flex flex-col gap-6': Cria um espaçamento vertical de 24px entre os itens.
+                2. 'mt-4': Dá um respiro em relação à linha divisória de cima.
+            */}
+            <div className="flex flex-col gap-6 text-sm mt-4">
                 <Tooltip text="Valor total acordado com o fornecedor em contrato." position="top">
-                    <div className="flex justify-between">
+                    <div className="flex justify-between items-center border-b border-gray-100 dark:border-gray-700 pb-1">
                         <span className="text-brand-gray-light dark:text-gray-400">Contratado:</span>
-                        <span className="font-bold">{formatCurrency(vendor.contractedValue)}</span>
+                        <span className="font-bold text-base">{formatCurrencyNoCents(vendor.contractedValue)}</span>
                     </div>
                 </Tooltip>
+                
                 <Tooltip text="Soma de todos os pagamentos já realizados para este fornecedor." position="top">
-                    <div className="flex justify-between">
+                    <div className="flex justify-between items-center border-b border-gray-100 dark:border-gray-700 pb-1">
                         <span className="text-brand-gray-light dark:text-gray-400">Pago:</span>
-                        <span className="font-bold text-green-600 dark:text-green-400">{formatCurrency(vendor.amountPaid)}</span>
+                        <span className="font-bold text-green-600 dark:text-green-400 text-base">{formatCurrencyNoCents(vendor.amountPaid)}</span>
                     </div>
                 </Tooltip>
+                
                 <Tooltip text="Valor que ainda falta pagar para quitar o contrato (Contratado - Pago)." position="top">
-                    <div className="flex justify-between">
+                    <div className="flex justify-between items-center border-b border-gray-100 dark:border-gray-700 pb-1">
                         <span className="text-brand-gray-light dark:text-gray-400">Restante:</span>
-                        <span className="font-bold text-red-600 dark:text-red-400">{formatCurrency(vendor.contractedValue - vendor.amountPaid)}</span>
+                        <span className="font-bold text-red-600 dark:text-red-400 text-base">{formatCurrencyNoCents(vendor.contractedValue - vendor.amountPaid)}</span>
                     </div>
                 </Tooltip>
             </div>
@@ -123,7 +129,7 @@ const VendorCard: React.FC<VendorCardProps> = ({ vendor, payments, isExpanded, o
                         </div>
                         <Tooltip text="Enviar WhatsApp" position="top">
                             <a
-                                href={`https://wa.me/55${cleanPhoneNumber(vendor.phone)}`}
+                                href={`https://wa.me/${cleanPhoneNumber(vendor.phone)}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
