@@ -11,10 +11,14 @@ interface GuestListItemProps {
     isSelected: boolean;
     onSelect: (guestId: string, isSelected: boolean) => void;
     userId?: string;
+    weddingSlug?: string; // Added weddingSlug prop
 }
 
-const GuestListItem: React.FC<GuestListItemProps> = ({ guest, onEdit, onDelete, isSelected, onSelect, userId }) => {
-    const rsvpLink = userId ? `${window.location.origin}/rsvp/${userId}` : '';
+const GuestListItem: React.FC<GuestListItemProps> = ({ guest, onEdit, onDelete, isSelected, onSelect, userId, weddingSlug }) => {
+    // Updated RSVP link logic to prioritize slug
+    const identifier = weddingSlug || userId;
+    const rsvpLink = identifier ? `${window.location.origin}/rsvp/${identifier}` : '';
+    
     const messageText = `Olá ${guest.name}! Você está convidado(a) para o nosso casamento. Por favor, confirme sua presença aqui: ${rsvpLink}`;
     const whatsappHref = guest.phone 
         ? `https://wa.me/55${guest.phone.replace(/\D/g, '')}?text=${encodeURIComponent(messageText)}` 
