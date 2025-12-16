@@ -214,7 +214,7 @@ const AddEditGuestModal: React.FC<AddEditGuestModalProps> = ({ isOpen, onClose, 
                                 value={formData.notes}
                                 onChange={handleChange}
                                 rows={3}
-                                placeholder="Ex: 'Minha amada irmã Juliana', 'Alergia a glúten'"
+                                placeholder="Primo da noiva / Amigo de infância do noivo"
                             />
                             
                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

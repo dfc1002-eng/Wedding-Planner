@@ -19,13 +19,15 @@ const PaymentSetup: React.FC<PaymentSetupProps> = ({ contractedValue, onParcelsC
     const { weddingData } = useWedding();
     const [paymentMode, setPaymentMode] = useState<PaymentMode>('two-installments');
     const [parcels, setParcels] = useState<Parcel[]>([]);
-    const [customInstallmentCount, setCustomInstallmentCount] = useState(2);
+    const [customInstallmentCount, setCustomInstallmentCount] = useState<number | string>(''); // Alterado para string vazia
 
     const totalParceled = useMemo(() => parcels.reduce((acc, p) => acc + p.amount, 0), [parcels]);
     const difference = contractedValue - totalParceled;
 
     useEffect(() => {
-        onParcelsChange(parcels, Math.abs(difference) < 0.01 && contractedValue > 0);
+        // A validação `isValid` deve considerar o contractedValue > 0 e a diferença mínima
+        const isValid = contractedValue > 0 && Math.abs(difference) < 0.01 && parcels.length > 0;
+        onParcelsChange(parcels, isValid);
     }, [parcels, difference, contractedValue, onParcelsChange]);
 
     useEffect(() => {
@@ -40,7 +42,8 @@ const PaymentSetup: React.FC<PaymentSetupProps> = ({ contractedValue, onParcelsC
                 { id: 'p2', dueDate: formatDate(weddingDateMinus15, 'yyyy-MM-dd'), amount: halfValue },
             ]);
         } else if (paymentMode === 'custom') {
-            const newParcels = Array.from({ length: customInstallmentCount }, (_, i) => {
+            const count = typeof customInstallmentCount === 'number' ? customInstallmentCount : 0;
+            const newParcels = Array.from({ length: count }, (_, i) => {
                 const existingParcel = parcels[i];
                 const newDueDate = new Date();
                 newDueDate.setMonth(newDueDate.getMonth() + i);
@@ -53,12 +56,13 @@ const PaymentSetup: React.FC<PaymentSetupProps> = ({ contractedValue, onParcelsC
             setParcels(newParcels);
         }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [paymentMode, contractedValue, customInstallmentCount]);
+    }, [paymentMode, contractedValue, customInstallmentCount]); // Adicionado customInstallmentCount nas dependências
 
     const handleParcelChange = (index: number, field: 'dueDate' | 'amount', value: string) => {
         const newParcels = [...parcels];
         if (field === 'amount') {
-            newParcels[index].amount = parseFloat(value) || 0;
+            // Permite string vazia para o campo de input, mas armazena 0 ou o float para cálculos
+            newParcels[index].amount = value === '' ? 0 : parseFloat(value) || 0;
         } else {
             newParcels[index].dueDate = value;
         }
@@ -66,45 +70,65 @@ const PaymentSetup: React.FC<PaymentSetupProps> = ({ contractedValue, onParcelsC
     };
 
     const handleDivideEqually = () => {
-        if (parcels.length === 0) return;
-        const equalAmount = contractedValue / parcels.length;
+        const count = typeof customInstallmentCount === 'number' && customInstallmentCount > 0 ? customInstallmentCount : 0;
+        if (count === 0) return;
+        const equalAmount = contractedValue / count;
         setParcels(parcels.map(p => ({ ...p, amount: Number(equalAmount.toFixed(2)) })));
     };
 
-    const handleCustomInstallmentCountChange = (count: number) => {
-        const newCount = Math.max(2, count); // Ensure at least 2 installments
-        setCustomInstallmentCount(newCount);
+    const handleCustomInstallmentCountChange = (value: string) => {
+        if (value === '') {
+            setCustomInstallmentCount('');
+            setParcels([]); // Limpa as parcelas quando o input fica vazio
+        } else {
+            const numValue = parseInt(value, 10);
+            if (!isNaN(numValue) && numValue >= 1) { // Garante que seja um número válido e maior ou igual a 1
+                setCustomInstallmentCount(numValue);
+            } else if (!isNaN(numValue) && numValue < 1) {
+                setCustomInstallmentCount(1); // Força no mínimo 1
+            } else {
+                setCustomInstallmentCount(''); // Se for inválido, limpa o campo
+            }
+        }
     };
 
-    const renderParcelInputs = () => (
-        <div className="space-y-3 max-h-48 overflow-y-auto pr-2">
-            {parcels.map((parcel, index) => (
-                <div key={parcel.id} className="grid grid-cols-2 gap-3 items-center">
-                    <FormField
-                        id={`parcel-date-${index}`}
-                        label="" // Label is empty as it's part of a group
-                        type="date"
-                        value={parcel.dueDate}
-                        onChange={(e) => handleParcelChange(index, 'dueDate', e.target.value)}
-                        required
-                        labelClassName="sr-only" // Hide label visually
-                    />
-                    <FormField
-                        id={`parcel-amount-${index}`}
-                        label="" // Label is empty as it's part of a group
-                        type="number"
-                        min="0"
-                        step="0.01"
-                        value={parcel.amount}
-                        onChange={(e) => handleParcelChange(index, 'amount', e.target.value)}
-                        placeholder="Valor (R$)"
-                        required
-                        labelClassName="sr-only" // Hide label visually
-                    />
-                </div>
-            ))}
-        </div>
-    );
+    const renderParcelInputs = () => {
+        // Renderiza as parcelas apenas se houver um número válido e maior que 0
+        if (parcels.length === 0) {
+            return (
+                <p className="text-sm text-gray-500 dark:text-gray-400">Digite o número de parcelas para configurar.</p>
+            );
+        }
+        return (
+            <div className="space-y-3 max-h-48 overflow-y-auto pr-2">
+                {parcels.map((parcel, index) => (
+                    <div key={parcel.id} className="grid grid-cols-2 gap-3 items-center">
+                        <FormField
+                            id={`parcel-date-${index}`}
+                            label="" // Label is empty as it's part of a group
+                            type="date"
+                            value={parcel.dueDate}
+                            onChange={(e) => handleParcelChange(index, 'dueDate', e.target.value)}
+                            required
+                            labelClassName="sr-only" // Hide label visually
+                        />
+                        <FormField
+                            id={`parcel-amount-${index}`}
+                            label="" // Label is empty as it's part of a group
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            value={parcel.amount === 0 ? '' : parcel.amount} // Exibir vazio se 0
+                            onChange={(e) => handleParcelChange(index, 'amount', e.target.value)}
+                            placeholder="Valor (R$)"
+                            required
+                            labelClassName="sr-only" // Hide label visually
+                        />
+                    </div>
+                ))}
+            </div>
+        );
+    };
     
     return (
         <div className="p-4 border rounded-md dark:border-gray-600 space-y-4 bg-gray-50 dark:bg-gray-800/50">
@@ -117,7 +141,11 @@ const PaymentSetup: React.FC<PaymentSetupProps> = ({ contractedValue, onParcelsC
                             name="paymentMode"
                             value={mode}
                             checked={paymentMode === mode}
-                            onChange={() => setPaymentMode(mode)}
+                            onChange={() => {
+                                setPaymentMode(mode);
+                                // Reset custom count when switching modes, but keep it for custom mode itself
+                                if (mode !== 'custom') setCustomInstallmentCount('');
+                            }}
                             className="form-radio accent-brand-gold focus:ring-brand-gold"
                         />
                         <span className="ml-2 text-sm">
@@ -134,10 +162,11 @@ const PaymentSetup: React.FC<PaymentSetupProps> = ({ contractedValue, onParcelsC
                             id="installments"
                             label="Nº de Parcelas"
                             type="number"
-                            value={customInstallmentCount}
-                            min="2"
-                            onChange={(e) => handleCustomInstallmentCountChange(parseInt(e.target.value) || 2)}
+                            value={customInstallmentCount === 0 ? '' : customInstallmentCount} // Exibir vazio se 0
+                            min="1" // Permitir no mínimo 1 parcela
+                            onChange={(e) => handleCustomInstallmentCountChange(e.target.value)}
                             labelClassName="block text-xs font-medium mb-1"
+                            placeholder="Ex: 2"
                         />
                         <button type="button" onClick={handleDivideEqually} className="py-2 px-4 text-sm rounded-lg text-brand-gray dark:text-gray-300 bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500 flex items-center justify-center space-x-2">
                            <Icon name="splitscreen" className="text-base" /> <span>Dividir Valor Igualmente</span>

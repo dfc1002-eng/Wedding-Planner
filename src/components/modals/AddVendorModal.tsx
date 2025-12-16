@@ -18,7 +18,7 @@ const AddVendorModal: React.FC<AddVendorModalProps> = ({ onClose, onSave, prefil
     const [category, setCategory] = useState(prefilledCategory || VENDOR_CATEGORIES[0]);
     const [phone, setPhone] = useState('');
     const [email, setEmail] = useState('');
-    const [contractedValue, setContractedValue] = useState(0);
+    const [contractedValue, setContractedValue] = useState<number | string>(''); // Alterado para string vazia
     const [parcels, setParcels] = useState<Parcel[]>([]);
     const [isPaymentValid, setIsPaymentValid] = useState(false);
     
@@ -28,7 +28,8 @@ const AddVendorModal: React.FC<AddVendorModalProps> = ({ onClose, onSave, prefil
         }
     }, [prefilledCategory]);
 
-    const isSaveDisabled = !isPaymentValid || contractedValue <= 0;
+    // Lógica de validação ajustada para `contractedValue`
+    const isSaveDisabled = !isPaymentValid || typeof contractedValue !== 'number' || contractedValue <= 0;
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -39,7 +40,8 @@ const AddVendorModal: React.FC<AddVendorModalProps> = ({ onClose, onSave, prefil
             category,
             phone,
             email,
-            contractedValue,
+            // Garante que contractedValue é um número para o save
+            contractedValue: typeof contractedValue === 'number' ? contractedValue : 0,
             parcels,
         });
     };
@@ -98,15 +100,24 @@ const AddVendorModal: React.FC<AddVendorModalProps> = ({ onClose, onSave, prefil
                                 id="contractedValue"
                                 label="Valor Total do Contrato (R$)"
                                 type="number"
-                                value={contractedValue}
-                                onChange={(e) => setContractedValue(parseFloat(e.target.value) || 0)}
+                                value={contractedValue === 0 ? '' : contractedValue} // Exibir vazio se 0
+                                onChange={(e) => {
+                                    const value = e.target.value;
+                                    if (value === '') {
+                                        setContractedValue('');
+                                    } else {
+                                        // Garante que o valor é um número válido, ou 0 se NaN
+                                        setContractedValue(parseFloat(value));
+                                    }
+                                }}
                                 required
                                 min="0"
                                 step="0.01"
+                                placeholder="0.00"
                             />
 
                             <PaymentSetup
-                                contractedValue={contractedValue}
+                                contractedValue={typeof contractedValue === 'number' ? contractedValue : 0} // Garante que é number para PaymentSetup
                                 onParcelsChange={(newParcels, isValid) => {
                                     setParcels(newParcels);
                                     setIsPaymentValid(isValid);
