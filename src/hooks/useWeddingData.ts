@@ -80,7 +80,9 @@ export const useWeddingData = () => {
                     // Garante que weddingDate seja um objeto Date antes de salvar
                     weddingDate: weddingData.weddingDate instanceof Date ? weddingData.weddingDate : new Date(weddingData.weddingDate)
                 };
-                await setDoc(userRef, { weddingData: dataToSave }, { merge: true });
+                // Remove o 'id' antes de salvar para evitar conflitos, pois o ID já é o doc.id
+                const { id, ...restOfWeddingData } = dataToSave;
+                await setDoc(userRef, { weddingData: restOfWeddingData }, { merge: true });
                 console.log("weddingData Firestore save success!");
                 isDirty.current = false; // Reseta a flag após o salvamento bem-sucedido
             } catch (err) {
@@ -117,6 +119,7 @@ export const useWeddingData = () => {
                     // Quando a atualização vem do Firestore, não consideramos 'dirty'
                     isDirty.current = false;
                     setWeddingDataState({
+                        id: docSnap.id, // Adiciona o ID do documento (user.uid) aqui!
                         ...data.weddingData,
                         weddingDate: data.weddingData.weddingDate?.toDate ? data.weddingData.weddingDate.toDate() : new Date(data.weddingData.weddingDate),
                     });
@@ -486,7 +489,7 @@ export const useWeddingData = () => {
 
     return {
         loading,
-        weddingData,
+        weddingData: { ...weddingData, id: user?.uid }, // Ensure weddingData.id is always user.uid
         setWeddingData,
         vendors,
         payments,

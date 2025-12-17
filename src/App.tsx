@@ -26,7 +26,7 @@ const GuestsScreen = React.lazy(() => import('./screens/GuestsScreen.tsx'));
 const GiftListScreen = React.lazy(() => import('./screens/GiftListScreen.tsx'));
 const SettingsScreen = React.lazy(() => import('./screens/SettingsScreen.tsx'));
 const LoginScreen = React.lazy(() => import('./screens/LoginScreen.tsx'));
-const PublicRSVPScreen = React.lazy(() => import('./screens/PublicRSVPScreen')); // <--- ADICIONA ISTO
+const PublicRSVPScreen = React.lazy(() => import('./screens/PublicRSVPScreen'));
 
 import { Vendor, Payment, VendorStatus, NewVendorFormData, EditVendorData, Guest, GuestFormData, Gift, GiftFormData } from './types';
 
@@ -242,8 +242,13 @@ const App: React.FC = () => {
                        </Suspense>
                      } />
                      
-                     {/* 👇 NOVA ROTA PÚBLICA DE RSVP 👇 */}
+                     {/* Rotas de RSVP (curto e amigável) */}
                      <Route path="/rsvp/:userId" element={
+                       <Suspense fallback={<LoadingFallback />}>
+                         <PublicRSVPScreen />
+                       </Suspense>
+                     } />
+                     <Route path="/rsvp/:userId/:slug" element={
                        <Suspense fallback={<LoadingFallback />}>
                          <PublicRSVPScreen />
                        </Suspense>

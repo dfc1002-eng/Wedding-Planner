@@ -148,10 +148,10 @@ const SettingsForm: React.FC<SettingsFormProps> = ({ onSave }) => {
                             Gerar Slug
                         </button>
                     </div>
-                    {formData.slug && (
+                    {formData.slug && weddingData.id && (
                         <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
                             Seu link de RSVP será: <code className="bg-gray-100 dark:bg-gray-700 px-1 py-0.5 rounded text-xs">
-                                {window.location.origin}/rsvp/{formData.slug}
+                                {window.location.origin}/rsvp/{weddingData.id}/{formData.slug}
                             </code>
                         </p>
                     )}

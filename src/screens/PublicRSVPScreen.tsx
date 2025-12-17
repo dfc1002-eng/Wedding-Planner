@@ -7,7 +7,7 @@ import Icon from '../components/ui/Icon';
 import { normalizeText } from '../utils';
 
 const PublicRSVPScreen: React.FC = () => {
-  const { userId } = useParams<{ userId: string }>();
+  const { userId } = useParams<{ userId: string }>(); 
   
   const [weddingData, setWeddingData] = useState<WeddingData | null>(null);
   const [guestName, setGuestName] = useState('');
@@ -21,20 +21,21 @@ const PublicRSVPScreen: React.FC = () => {
     const fetchWeddingInfo = async () => {
       if (!userId) return;
       try {
-        const docRef = doc(db, 'users', userId);
-        const docSnap = await getDoc(docRef);
+        // BUSCA DIRETA E RÁPIDA POR ID
+        const userDocRef = doc(db, 'users', userId);
+        const userDocSnap = await getDoc(userDocRef);
         
-        if (docSnap.exists()) {
-          const data = docSnap.data();
+        if (userDocSnap.exists()) {
+          const data = userDocSnap.data();
           // Garante que a data é um objeto Date válido
-          const weddingDate = data.weddingData?.toDate ? data.weddingData.toDate() : new Date();
-          setWeddingData({ ...data, weddingDate } as WeddingData);
+          const weddingDate = data.weddingData?.weddingDate?.toDate ? data.weddingData.weddingDate.toDate() : new Date();
+          setWeddingData({ ...data.weddingData, id: userDocSnap.id, weddingDate } as WeddingData);
         } else {
-          setError('Casamento não encontrado.');
+          setError('Casamento não encontrado. Verifique o link.');
         }
       } catch (err) {
         console.error("Erro ao buscar casamento:", err);
-        setError('Erro ao carregar informações.');
+        setError('Erro ao carregar informações. Tente novamente.');
       } finally {
         setLoading(false);
       }
@@ -53,7 +54,7 @@ const PublicRSVPScreen: React.FC = () => {
 
     try {
       const searchNormalized = normalizeText(guestName);
-      // Busca pelo campo normalizado
+      // Busca pelo campo normalizado e pelo userId correto
       const q = query(
         collection(db, 'guests'), 
         where('userId', '==', userId), 
@@ -83,7 +84,7 @@ const PublicRSVPScreen: React.FC = () => {
   };
 
   const handleConfirm = async (status: GuestStatus) => {
-    if (!foundGuest || !userId) return;
+    if (!foundGuest || !userId) return; 
     setLoading(true);
     try {
       const guestRef = doc(db, 'guests', foundGuest.id);

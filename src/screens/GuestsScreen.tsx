@@ -15,7 +15,7 @@ interface GuestsScreenProps {
 }
 
 const GuestsScreen: React.FC<GuestsScreenProps> = ({ onAddGuest, onEditGuest, onDeleteGuest, onChangeGuestsStatus }) => {
-    const { guests, weddingData } = useWedding(); // Added weddingData
+    const { guests, weddingData } = useWedding(); 
     const { user } = useAuth(); 
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState<GuestStatus | 'all'>('all');
@@ -351,7 +351,7 @@ const GuestsScreen: React.FC<GuestsScreenProps> = ({ onAddGuest, onEditGuest, on
                                 isSelected={selectedGuestIds.has(guest.id)}
                                 onSelect={handleSelectGuest}
                                 userId={user?.uid}
-                                weddingSlug={weddingData?.slug} // Passed weddingSlug here 
+                                weddingSlug={weddingData?.slug} 
                             />
                         ))
                     ) : (

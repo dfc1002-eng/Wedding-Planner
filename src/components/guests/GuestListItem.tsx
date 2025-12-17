@@ -11,18 +11,26 @@ interface GuestListItemProps {
     isSelected: boolean;
     onSelect: (guestId: string, isSelected: boolean) => void;
     userId?: string;
-    weddingSlug?: string; // Added weddingSlug prop
+    weddingSlug?: string;
 }
 
 const GuestListItem: React.FC<GuestListItemProps> = ({ guest, onEdit, onDelete, isSelected, onSelect, userId, weddingSlug }) => {
-    // Updated RSVP link logic to prioritize slug
-    const identifier = weddingSlug || userId;
-    const rsvpLink = identifier ? `${window.location.origin}/rsvp/${identifier}` : '';
     
+    // --- LÓGICA CORRIGIDA ---
+    // 1. Garante que userId existe antes de tentar montar qualquer link.
+    // 2. Se tiver slug, adiciona ao final.
+    let rsvpLink = '';
+    
+    if (userId) {
+        rsvpLink = weddingSlug 
+            ? `${window.location.origin}/rsvp/${userId}/${weddingSlug}`
+            : `${window.location.origin}/rsvp/${userId}`;
+    }
+
     const messageText = `Olá ${guest.name}! Você está convidado(a) para o nosso casamento. Por favor, confirme sua presença aqui: ${rsvpLink}`;
     
-    // Lógica CORRIGIDA para o link do WhatsApp
-    const cleanPhone = guest.phone ? guest.phone.replace(/\D/g, '') : ''; // Remove tudo que não for número (remove +, -, espaço)
+    // WhatsApp
+    const cleanPhone = guest.phone ? guest.phone.replace(/\D/g, '') : '';
     const whatsappHref = cleanPhone 
         ? `https://wa.me/${cleanPhone}?text=${encodeURIComponent(messageText)}` 
         : '#';
@@ -39,7 +47,7 @@ const GuestListItem: React.FC<GuestListItemProps> = ({ guest, onEdit, onDelete, 
                 />
             </div>
 
-            {/* Nome */}
+            {/* Nome e Grupo */}
             <div className="flex-1 mb-2 md:mb-0">
                 <p className="font-bold text-brand-gray dark:text-white flex items-center">
                     {guest.status === GuestStatus.Confirmed && (
@@ -77,10 +85,8 @@ const GuestListItem: React.FC<GuestListItemProps> = ({ guest, onEdit, onDelete, 
                 <StatusChip status={guest.status} />
             </div>
 
-            {/* Ações */}
+            {/* Botões de Ação */}
             <div className="md:w-40 flex justify-end items-center gap-2">
-                
-                {/* BOTÃO NOVO (RSVP) */}
                 <Tooltip text="Enviar Link RSVP via WhatsApp" position="top">
                     <a
                         href={whatsappHref}
