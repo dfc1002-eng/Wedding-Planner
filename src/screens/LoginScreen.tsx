@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom'; // Importar useNavigate
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { FirebaseError } from 'firebase/app';
-import Icon from '../components/ui/Icon'; // Assuming Icon component exists
+import Icon from '../components/ui/Icon';
+import { getAuth, sendPasswordResetEmail } from 'firebase/auth'; // Novos Imports
+import { db } from '../firebase'; // Import db to get auth instance
 
 const LoginScreen: React.FC = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -11,10 +13,15 @@ const LoginScreen: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
-  const navigate = useNavigate(); // Inicializar useNavigate
-  
-  // Using the renamed functions from AuthContext
+  // Estados para recuperação de senha
+  const [showResetModal, setShowResetModal] = useState(false);
+  const [resetEmail, setResetEmail] = useState('');
+  const [resetStatus, setResetStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+  const [resetMessage, setResetMessage] = useState<string | null>(null);
+
+  const navigate = useNavigate();
   const { signIn, signUp } = useAuth();
+  const auth = getAuth(); // Obter a instância de auth
 
   const getFirebaseErrorMessage = (errorCode: string): string => {
     switch (errorCode) {
@@ -25,6 +32,7 @@ const LoginScreen: React.FC = () => {
       case 'auth/weak-password': return 'A senha deve ter pelo menos 6 caracteres.';
       case 'auth/invalid-credential': return 'Credenciais inválidas. Verifique seu e-mail e senha.';
       case 'auth/network-request-failed': return 'Erro de rede. Verifique sua conexão com a internet.';
+      case 'auth/missing-email': return 'Por favor, insira um e-mail para redefinir a senha.';
       default: return 'Ocorreu um erro. Tente novamente.';
     }
   };
@@ -45,11 +53,7 @@ const LoginScreen: React.FC = () => {
       } else {
         await signUp(email, password);
       }
-      
-      // 🚨 CORREÇÃO: Força a navegação para o App
-      // O App.tsx decidirá se vai para o Dashboard ou Onboarding
       navigate('/');
-      
     } catch (err: any) {
       console.error("Erro auth:", err);
       if (err instanceof FirebaseError) {
@@ -58,9 +62,44 @@ const LoginScreen: React.FC = () => {
         setError('Ocorreu um erro inesperado. Tente novamente.');
       }
     } finally {
-      // Nota: Se o navigate funcionar, o componente desmonta e isso não roda, o que é ok.
-      // Se der erro, precisamos parar o loading.
       setLoading(false);
+    }
+  };
+
+  const handleOpenResetModal = () => {
+    setResetEmail(email);
+    setResetStatus('idle');
+    setResetMessage(null);
+    setShowResetModal(true);
+  };
+
+  const handlePasswordReset = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setResetStatus('loading');
+    setResetMessage(null);
+
+    if (!resetEmail.trim()) {
+      setResetMessage(getFirebaseErrorMessage('auth/missing-email'));
+      setResetStatus('error');
+      return;
+    }
+
+    try {
+      await sendPasswordResetEmail(auth, resetEmail);
+      setResetMessage('Link de redefinição enviado! Verifique seu e-mail.');
+      setResetStatus('success');
+      setTimeout(() => {
+        setShowResetModal(false);
+        setResetEmail('');
+      }, 3000);
+    } catch (err: any) {
+      console.error("Erro ao redefinir senha:", err);
+      if (err instanceof FirebaseError) {
+        setResetMessage(getFirebaseErrorMessage(err.code));
+      } else {
+        setResetMessage('Ocorreu um erro ao redefinir a senha. Tente novamente.');
+      }
+      setResetStatus('error');
     }
   };
 
@@ -111,6 +150,16 @@ const LoginScreen: React.FC = () => {
               disabled={loading}
               className="w-full px-4 py-2 border border-gray-200 dark:border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-gold focus:border-transparent dark:bg-gray-700 dark:text-white transition-all"
             />
+            {isLogin && (
+              <button
+                type="button"
+                onClick={handleOpenResetModal}
+                className="mt-2 text-sm font-medium text-brand-pink hover:text-brand-pink-dark transition-colors block text-right"
+                disabled={loading}
+              >
+                Esqueci minha senha?
+              </button>
+            )}
           </div>
           
           {error && (
@@ -152,6 +201,62 @@ const LoginScreen: React.FC = () => {
           </button>
         </div>
       </div>
+
+      {/* Modal de Redefinição de Senha */}
+      {showResetModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-60 flex justify-center items-center z-50 p-4" onClick={() => setShowResetModal(false)}>
+          <div 
+            className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-sm p-8 text-center animate-fadeIn"
+            onClick={e => e.stopPropagation()}
+          >
+            <h3 className="text-2xl font-bold text-brand-gray dark:text-white mb-6 font-title">Redefinir Senha</h3>
+            <form onSubmit={handlePasswordReset} className="space-y-5">
+              <div>
+                <label htmlFor="reset-email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 text-left">Seu E-mail</label>
+                <input
+                  id="reset-email"
+                  type="email"
+                  value={resetEmail}
+                  onChange={(e) => setResetEmail(e.target.value)}
+                  required
+                  disabled={resetStatus === 'loading'}
+                  className="w-full px-4 py-2 border border-gray-200 dark:border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-gold focus:border-transparent dark:bg-gray-700 dark:text-white transition-all"
+                  placeholder="e-mail cadastrado"
+                />
+              </div>
+              
+              {resetMessage && (
+                <div className={`p-3 rounded-lg flex items-center gap-2 text-sm animate-fadeIn 
+                  ${resetStatus === 'success' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
+                  <Icon name={resetStatus === 'success' ? 'check_circle' : 'error'} className="text-lg"/>
+                  {resetMessage}
+                </div>
+              )}
+
+              <div>
+                <button
+                  type="submit"
+                  disabled={resetStatus === 'loading' || resetStatus === 'success'}
+                  className={`w-full flex items-center justify-center gap-2 px-4 py-2.5 font-bold text-white bg-brand-pink rounded-lg shadow-md hover:bg-brand-pink-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-pink transition-all transform active:scale-95 
+                    ${resetStatus === 'loading' ? 'opacity-70 cursor-not-allowed' : 'hover:-translate-y-0.5'}`}
+                >
+                  {resetStatus === 'loading' ? (
+                    <><Icon name="hourglass_empty" className="animate-spin" /> Enviando...</>
+                  ) : (
+                    <><Icon name="send" /> Enviar Link</>
+                  )}
+                </button>
+              </div>
+            </form>
+            <button 
+              onClick={() => setShowResetModal(false)}
+              className="mt-4 text-sm font-medium text-gray-500 hover:text-brand-pink transition-colors"
+            >
+              Cancelar
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
