@@ -1,10 +1,12 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { format as formatDate } from 'date-fns';
 import { ptBR } from 'date-fns/locale/pt-BR';
 import { useNavigate } from 'react-router-dom';
 import { WeddingData, PaymentNotification } from '../../types';
 import ReminderBell from '../ui/ReminderBell';
 import Icon from '../ui/Icon';
+// Importar o Modal
+import HelpModal from '../modals/HelpModal';
 
 interface HeaderProps {
     weddingData: WeddingData;
@@ -13,6 +15,8 @@ interface HeaderProps {
 
 const Header: React.FC<HeaderProps> = ({ weddingData, paymentNotifications }) => {
     const navigate = useNavigate();
+    // Criar o estado para controlar o modal
+    const [isHelpOpen, setIsHelpOpen] = useState(false);
 
     return (
         <header className="mb-8 flex justify-between items-start">
@@ -28,7 +32,7 @@ const Header: React.FC<HeaderProps> = ({ weddingData, paymentNotifications }) =>
                             {weddingData.venueName}
                         </p>
                     )}
-                     {weddingData.weddingWebsite && (
+                    {weddingData.weddingWebsite && (
                         <a 
                             href={weddingData.weddingWebsite.startsWith('http') ? weddingData.weddingWebsite : `https://${weddingData.weddingWebsite}`} 
                             target="_blank" 
@@ -41,10 +45,22 @@ const Header: React.FC<HeaderProps> = ({ weddingData, paymentNotifications }) =>
                     )}
                 </div>
             </div>
-            <ReminderBell 
-                notifications={paymentNotifications}
-                onNotificationClick={() => navigate('/payments')}
-            />
+            <div className="flex items-center gap-4"> {/* Div container para alinhar Help e ReminderBell */}
+                {/* Botão de Ajuda */}
+                <button
+                    onClick={() => setIsHelpOpen(true)}
+                    className="p-2 rounded-full text-brand-gray-light hover:bg-gray-100 hover:text-brand-pink dark:text-gray-400 dark:hover:bg-gray-700 transition-colors"
+                    aria-label="Ajuda e Guia"
+                >
+                    <Icon name="help" className="text-xl" />
+                </button>
+                <ReminderBell 
+                    notifications={paymentNotifications}
+                    onNotificationClick={() => navigate('/payments')}
+                />
+            </div>
+            {/* Renderizar o HelpModal condicionalmente */}
+            {isHelpOpen && <HelpModal onClose={() => setIsHelpOpen(false)} />}
         </header>
     );
 };
