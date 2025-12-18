@@ -13,29 +13,46 @@ const HelpModal: React.FC<HelpModalProps> = ({ onClose }) => {
         setOpenFaqIndex(openFaqIndex === index ? null : index);
     };
 
+    // --- CONTEÚDO DO GUIA (ATUALIZADO) ---
     const guideSteps = [
         {
             icon: 'settings',
-            title: '1. Personalize seu Evento',
-            desc: "Vá em 'Ajustes' para definir a data, orçamento total e criar seu Link Amigável (ex: /ana-e-pedro)."
-        },
-        {
-            icon: 'groups',
-            title: '2. Lista de Convidados',
-            desc: "Adicione seus convidados. Use o botão de WhatsApp na lista para enviar o convite com o link de RSVP automático."
+            title: '1. Personalize seu evento',
+            desc: "Acesse a aba “Ajustes” para definir a data do casamento, o orçamento total e criar o seu Link Amigável (ex: /ana-e-pedro)."
         },
         {
             icon: 'storefront',
-            title: '3. Gestão de Fornecedores',
-            desc: "Cadastre seus contratos. Lance pagamentos parciais e aditivos para manter o orçamento sob controle."
+            title: '2. Gestão de fornecedores',
+            desc: "Cadastre todos os fornecedores do seu casamento e acompanhe os gastos do início ao fim. Para ajudar no controle financeiro do seu casamento, inclua informações como valor do contrato, número de parcelas e tenha o orçamento sob controle."
         },
         {
-            icon: 'dashboard',
-            title: '4. Acompanhe o Progresso',
-            desc: "Use o Dashboard inicial para ver a contagem regressiva, pagamentos pendentes e confirmações de presença."
+            icon: 'payment',
+            title: '3. Pagamentos',
+            desc: "Tenha o controle financeiro do seu casamento em um só lugar. Nesta aba, você acompanha todos os pagamentos do seu grande dia de forma clara e organizada."
+        },
+        {
+            icon: 'checklist',
+            title: '4. Checklist',
+            desc: "Um checklist completo para acompanhar cada etapa dos preparativos do seu casamento. A cada fornecedor incluído, ele será automaticamente integrado à aba de Fornecedores, facilitando a organização e o controle do planejamento."
+        },
+        {
+            icon: 'people',
+            title: '5. Lista de convidados',
+            desc: "Adicione seus convidados e preencha as informações essenciais para manter o controle da lista de forma prática e organizada: com campos para quantidade de convidados, número de convites e até um botão de WhatsApp, facilitando o envio do convite com link de RSVP automático."
+        },
+        {
+            icon: 'card_giftcard',
+            title: '6. Lista de Presentes',
+            desc: "Para ajudar no controle dos presentes do seu casamento, preencha as informações dos presentes recebidos e acompanhe o valor total arrecadado, além de registrar se o agradecimento já foi enviado a cada convidado."
+        },
+        {
+            icon: 'grid_view',
+            title: '7. Acompanhe o progresso do seu casamento',
+            desc: "Utilize o Dashboard inicial para ter uma visão geral de todo o planejamento e acompanhar o progresso dos preparativos do seu grande dia."
         }
     ];
 
+    // --- CONTEÚDO DAS DÚVIDAS (FAQ) ---
     const faqs = [
         {
             question: "Como envio o link de RSVP?",
@@ -61,6 +78,7 @@ const HelpModal: React.FC<HelpModalProps> = ({ onClose }) => {
                 className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden animate-fadeIn"
                 onClick={e => e.stopPropagation()}
             >
+                {/* Cabeçalho */}
                 <div className="p-6 pb-0 bg-white dark:bg-gray-800 flex-shrink-0">
                     <div className="flex justify-between items-start mb-4">
                         <h2 className="text-2xl font-bold text-brand-gray dark:text-white font-title">
@@ -71,6 +89,7 @@ const HelpModal: React.FC<HelpModalProps> = ({ onClose }) => {
                         </button>
                     </div>
 
+                    {/* Abas */}
                     <div className="flex border-b border-gray-200 dark:border-gray-700">
                         <button
                             onClick={() => setActiveTab('guide')}
@@ -95,17 +114,18 @@ const HelpModal: React.FC<HelpModalProps> = ({ onClose }) => {
                     </div>
                 </div>
 
+                {/* Corpo Scrollável */}
                 <div className="p-6 overflow-y-auto bg-gray-50 dark:bg-gray-900/30 flex-grow">
                     {activeTab === 'guide' ? (
                         <div className="space-y-4">
                             {guideSteps.map((step, idx) => (
-                                <div key={idx} className="bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-100 dark:border-gray-700 flex gap-4 shadow-sm">
-                                    <div className="flex-shrink-0 bg-brand-pink/10 dark:bg-brand-gold/10 w-10 h-10 rounded-full flex items-center justify-center text-brand-pink dark:text-brand-gold">
-                                        <Icon name={step.icon} />
+                                <div key={idx} className="bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-100 dark:border-gray-700 flex gap-4 shadow-sm hover:shadow-md transition-shadow">
+                                    <div className="flex-shrink-0 bg-brand-pink/10 dark:bg-brand-gold/10 w-12 h-12 rounded-full flex items-center justify-center text-brand-pink dark:text-brand-gold">
+                                        <Icon name={step.icon} className="text-xl" />
                                     </div>
                                     <div>
                                         <h3 className="font-bold text-brand-gray dark:text-white mb-1">{step.title}</h3>
-                                        <p className="text-sm text-gray-600 dark:text-gray-400">{step.desc}</p>
+                                        <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed text-justify">{step.desc}</p>
                                     </div>
                                 </div>
                             ))}
