@@ -31,7 +31,7 @@ const VendorPaymentsCard: React.FC<VendorPaymentsCardProps> = ({ vendor, payment
                     <Icon name={isExpanded ? 'expand_less' : 'expand_more'} className="text-2xl text-brand-gray-light dark:text-gray-400" />
                 </div>
                 
-                <div className="grid grid-cols-3 gap-4 text-center mt-4 text-sm">
+                <div className="flex flex-col md:grid md:grid-cols-3 gap-4 text-center mt-4 text-sm">
                     <div>
                         <p className="text-brand-gray-light dark:text-gray-400 text-xs uppercase">Contratado</p>
                         <p className="font-bold text-brand-gray dark:text-gray-200">{formatCurrency(vendor.contractedValue)}</p>
