@@ -129,7 +129,7 @@ const SettingsForm: React.FC<SettingsFormProps> = ({ onSave }) => {
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                         Link Personalizado do Casamento (URL Amigável)
                     </label>
-                    <div className="flex gap-2">
+                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                         <FormField
                             id="slug"
                             type="text"
@@ -142,15 +142,15 @@ const SettingsForm: React.FC<SettingsFormProps> = ({ onSave }) => {
                         <button
                             type="button"
                             onClick={handleGenerateSlug}
-                            className="bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors"
+                            className="w-full sm:w-auto bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 px-4 py-2 rounded-lg text-sm font-medium flex items-center justify-center gap-2 transition-colors"
                         >
                             <Icon name="auto_awesome" className="text-base" />
                             Gerar Slug
                         </button>
                     </div>
                     {formData.slug && weddingData.id && (
-                        <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
-                            Seu link de RSVP será: <code className="bg-gray-100 dark:bg-gray-700 px-1 py-0.5 rounded text-xs">
+                        <p className="mt-2 text-sm text-gray-500 dark:text-gray-400 p-2 rounded bg-gray-50 dark:bg-gray-700/50">
+                            Seu link de RSVP será: <code className="break-all text-xs">
                                 {window.location.origin}/rsvp/{weddingData.id}/{formData.slug}
                             </code>
                         </p>
