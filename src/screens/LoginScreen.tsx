@@ -1,27 +1,40 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { FirebaseError } from 'firebase/app';
 import Icon from '../components/ui/Icon';
-import { getAuth, sendPasswordResetEmail } from 'firebase/auth'; // Novos Imports
-import { db } from '../firebase'; // Import db to get auth instance
+import { getAuth, sendPasswordResetEmail } from 'firebase/auth';
+import { db } from '../firebase';
 
 const LoginScreen: React.FC = () => {
-  const [isLogin, setIsLogin] = useState(true);
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { signIn, signUp } = useAuth();
+  const auth = getAuth();
+
+  // O estado `isLogin` é inicializado com base na URL atual.
+  const [isLogin, setIsLogin] = useState(location.pathname !== '/cadastro');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
-  // Estados para recuperação de senha
+  // Estados para o modal de recuperação de senha
   const [showResetModal, setShowResetModal] = useState(false);
   const [resetEmail, setResetEmail] = useState('');
   const [resetStatus, setResetStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [resetMessage, setResetMessage] = useState<string | null>(null);
 
-  const navigate = useNavigate();
-  const { signIn, signUp } = useAuth();
-  const auth = getAuth(); // Obter a instância de auth
+  // useEffect para sincronizar o estado do componente com a URL e limpar o formulário.
+  useEffect(() => {
+    const currentIsLogin = location.pathname !== '/cadastro';
+    setIsLogin(currentIsLogin);
+    
+    // Limpa erros e campos ao alternar entre os formulários.
+    setError(null);
+    setEmail('');
+    setPassword('');
+  }, [location.pathname]);
 
   const getFirebaseErrorMessage = (errorCode: string): string => {
     switch (errorCode) {
@@ -31,7 +44,7 @@ const LoginScreen: React.FC = () => {
       case 'auth/email-already-in-use': return 'Este e-mail já está em uso.';
       case 'auth/weak-password': return 'A senha deve ter pelo menos 6 caracteres.';
       case 'auth/invalid-credential': return 'Credenciais inválidas. Verifique seu e-mail e senha.';
-      case 'auth/network-request-failed': return 'Erro de rede. Verifique sua conexão com a internet.';
+      case 'auth/network-request-failed': return 'Erro de rede. Verifique sua conexão.';
       case 'auth/missing-email': return 'Por favor, insira um e-mail para redefinir a senha.';
       default: return 'Ocorreu um erro. Tente novamente.';
     }
@@ -55,7 +68,6 @@ const LoginScreen: React.FC = () => {
       }
       navigate('/');
     } catch (err: any) {
-      console.error("Erro auth:", err);
       if (err instanceof FirebaseError) {
         setError(getFirebaseErrorMessage(err.code));
       } else {
@@ -65,7 +77,7 @@ const LoginScreen: React.FC = () => {
       setLoading(false);
     }
   };
-
+  
   const handleOpenResetModal = () => {
     setResetEmail(email);
     setResetStatus('idle');
@@ -88,19 +100,20 @@ const LoginScreen: React.FC = () => {
       await sendPasswordResetEmail(auth, resetEmail);
       setResetMessage('Link de redefinição enviado! Verifique seu e-mail.');
       setResetStatus('success');
-      setTimeout(() => {
-        setShowResetModal(false);
-        setResetEmail('');
-      }, 3000);
+      setTimeout(() => setShowResetModal(false), 3000);
     } catch (err: any) {
-      console.error("Erro ao redefinir senha:", err);
       if (err instanceof FirebaseError) {
         setResetMessage(getFirebaseErrorMessage(err.code));
       } else {
-        setResetMessage('Ocorreu um erro ao redefinir a senha. Tente novamente.');
+        setResetMessage('Ocorreu um erro ao redefinir a senha.');
       }
       setResetStatus('error');
     }
+  };
+
+  // Função que usa o `navigate` para mudar a URL explicitamente.
+  const toggleFormType = () => {
+    navigate(isLogin ? '/cadastro' : '/login');
   };
 
   return (
@@ -118,142 +131,60 @@ const LoginScreen: React.FC = () => {
         
         <form onSubmit={handleSubmit} className="space-y-5">
           <div>
-            <label
-              htmlFor="email"
-              className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-            >
-              Email
-            </label>
-            <input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              disabled={loading}
-              className="w-full px-4 py-2 border border-gray-200 dark:border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-gold focus:border-transparent dark:bg-gray-700 dark:text-white transition-all"
-            />
+            <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email</label>
+            <input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required disabled={loading} className="w-full px-4 py-2 border border-gray-200 dark:border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-gold focus:border-transparent dark:bg-gray-700 dark:text-white transition-all"/>
           </div>
           <div>
-            <label
-              htmlFor="password"
-              className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-            >
-              Senha
-            </label>
-            <input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              disabled={loading}
-              className="w-full px-4 py-2 border border-gray-200 dark:border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-gold focus:border-transparent dark:bg-gray-700 dark:text-white transition-all"
-            />
+            <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Senha</label>
+            <input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required disabled={loading} className="w-full px-4 py-2 border border-gray-200 dark:border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-gold focus:border-transparent dark:bg-gray-700 dark:text-white transition-all"/>
             {isLogin && (
-              <button
-                type="button"
-                onClick={handleOpenResetModal}
-                className="mt-2 text-sm font-medium text-brand-pink hover:text-brand-pink-dark transition-colors block text-right"
-                disabled={loading}
-              >
-                Esqueci minha senha?
-              </button>
+              <button type="button" onClick={handleOpenResetModal} className="mt-2 text-sm font-medium text-brand-pink hover:text-brand-pink-dark transition-colors block text-right" disabled={loading}>Esqueci minha senha?</button>
             )}
           </div>
           
           {error && (
             <div className="bg-red-50 p-3 rounded-lg flex items-center gap-2 text-red-700 text-sm animate-fadeIn">
-                <Icon name="error" className="text-lg"/>
-                {error}
+                <Icon name="error" className="text-lg"/>{error}
             </div>
           )}
 
           <div>
-            <button
-              type="submit"
-              disabled={loading}
-              className={`w-full flex items-center justify-center gap-2 px-4 py-2.5 font-bold text-white bg-brand-gold rounded-lg shadow-md hover:bg-brand-gold-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-gold transition-all transform active:scale-95 ${loading ? 'opacity-70 cursor-not-allowed' : 'hover:-translate-y-0.5'}`}
-            >
-              {loading ? (
-                <><Icon name="hourglass_empty" className="animate-spin" /> {isLogin ? 'Entrando...' : 'Criando...'}</>
-              ) : (
-                <><Icon name={isLogin ? 'login' : 'person_add'} /> {isLogin ? 'Entrar' : 'Criar Conta'}</>
-              )}
+            <button type="submit" disabled={loading} className={`w-full flex items-center justify-center gap-2 px-4 py-2.5 font-bold text-white bg-brand-gold rounded-lg shadow-md hover:bg-brand-gold-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-gold transition-all transform active:scale-95 ${loading ? 'opacity-70 cursor-not-allowed' : 'hover:-translate-y-0.5'}`}>
+              {loading ? (<><Icon name="hourglass_empty" className="animate-spin" /> {isLogin ? 'Entrando...' : 'Criando...'}</>) : (<><Icon name={isLogin ? 'login' : 'person_add'} /> {isLogin ? 'Entrar' : 'Criar Conta'}</>)}
             </button>
           </div>
         </form>
         
         <div className="text-sm text-center mt-6">
-          <button
-            onClick={() => {
-              setIsLogin(!isLogin);
-              setError(null); // Clear errors when switching form type
-              setEmail(''); // Clear fields when switching
-              setPassword('');
-            }}
-            className="font-medium text-brand-pink hover:text-brand-pink-dark transition-colors"
-            disabled={loading}
-          >
-            {isLogin
-              ? 'Não tem uma conta? Crie uma aqui!'
-              : 'Já tem uma conta? Faça login aqui!'}
+          <button onClick={toggleFormType} className="font-medium text-brand-pink hover:text-brand-pink-dark transition-colors" disabled={loading}>
+            {isLogin ? 'Não tem uma conta? Crie uma aqui!' : 'Já tem uma conta? Faça login aqui!'}
           </button>
         </div>
       </div>
 
-      {/* Modal de Redefinição de Senha */}
       {showResetModal && (
         <div className="fixed inset-0 bg-black bg-opacity-60 flex justify-center items-center z-50 p-4" onClick={() => setShowResetModal(false)}>
-          <div 
-            className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-sm p-8 text-center animate-fadeIn"
-            onClick={e => e.stopPropagation()}
-          >
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-sm p-8 text-center animate-fadeIn" onClick={e => e.stopPropagation()}>
             <h3 className="text-2xl font-bold text-brand-gray dark:text-white mb-6 font-title">Redefinir Senha</h3>
             <form onSubmit={handlePasswordReset} className="space-y-5">
               <div>
                 <label htmlFor="reset-email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 text-left">Seu E-mail</label>
-                <input
-                  id="reset-email"
-                  type="email"
-                  value={resetEmail}
-                  onChange={(e) => setResetEmail(e.target.value)}
-                  required
-                  disabled={resetStatus === 'loading'}
-                  className="w-full px-4 py-2 border border-gray-200 dark:border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-gold focus:border-transparent dark:bg-gray-700 dark:text-white transition-all"
-                  placeholder="e-mail cadastrado"
-                />
+                <input id="reset-email" type="email" value={resetEmail} onChange={(e) => setResetEmail(e.target.value)} required disabled={resetStatus === 'loading'} className="w-full px-4 py-2 border border-gray-200 dark:border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-gold focus:border-transparent dark:bg-gray-700 dark:text-white transition-all" placeholder="e-mail cadastrado"/>
               </div>
               
               {resetMessage && (
-                <div className={`p-3 rounded-lg flex items-center gap-2 text-sm animate-fadeIn 
-                  ${resetStatus === 'success' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
-                  <Icon name={resetStatus === 'success' ? 'check_circle' : 'error'} className="text-lg"/>
-                  {resetMessage}
+                <div className={`p-3 rounded-lg flex items-center gap-2 text-sm animate-fadeIn ${resetStatus === 'success' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
+                  <Icon name={resetStatus === 'success' ? 'check_circle' : 'error'} className="text-lg"/>{resetMessage}
                 </div>
               )}
 
               <div>
-                <button
-                  type="submit"
-                  disabled={resetStatus === 'loading' || resetStatus === 'success'}
-                  className={`w-full flex items-center justify-center gap-2 px-4 py-2.5 font-bold text-white bg-brand-pink rounded-lg shadow-md hover:bg-brand-pink-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-pink transition-all transform active:scale-95 
-                    ${resetStatus === 'loading' ? 'opacity-70 cursor-not-allowed' : 'hover:-translate-y-0.5'}`}
-                >
-                  {resetStatus === 'loading' ? (
-                    <><Icon name="hourglass_empty" className="animate-spin" /> Enviando...</>
-                  ) : (
-                    <><Icon name="send" /> Enviar Link</>
-                  )}
+                <button type="submit" disabled={resetStatus === 'loading' || resetStatus === 'success'} className={`w-full flex items-center justify-center gap-2 px-4 py-2.5 font-bold text-white bg-brand-pink rounded-lg shadow-md hover:bg-brand-pink-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-pink transition-all transform active:scale-95 ${resetStatus === 'loading' ? 'opacity-70 cursor-not-allowed' : 'hover:-translate-y-0.5'}`}>
+                  {resetStatus === 'loading' ? (<><Icon name="hourglass_empty" className="animate-spin" /> Enviando...</>) : (<><Icon name="send" /> Enviar Link</>)}
                 </button>
               </div>
             </form>
-            <button 
-              onClick={() => setShowResetModal(false)}
-              className="mt-4 text-sm font-medium text-gray-500 hover:text-brand-pink transition-colors"
-            >
-              Cancelar
-            </button>
+            <button onClick={() => setShowResetModal(false)} className="mt-4 text-sm font-medium text-gray-500 hover:text-brand-pink transition-colors">Cancelar</button>
           </div>
         </div>
       )}

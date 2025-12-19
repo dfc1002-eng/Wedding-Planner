@@ -241,6 +241,11 @@ const App: React.FC = () => {
                          <LoginScreen />
                        </Suspense>
                      } />
+                     <Route path="/cadastro" element={
+                        <Suspense fallback={<LoadingFallback />}>
+                            <LoginScreen />
+                        </Suspense>
+                     } />
                      
                      {/* Rotas de RSVP (curto e amigável) */}
                      <Route path="/rsvp/:userId" element={
