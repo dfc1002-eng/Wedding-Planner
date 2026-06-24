@@ -16,6 +16,7 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onSave }) => {
         activeWeddingId, 
         changeActiveWedding, 
         collaborators, 
+        collaboratorEmails,
         sharedWeddings, 
         handleAddCollaborator, 
         handleRemoveCollaborator 
@@ -33,8 +34,8 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onSave }) => {
     const [copied, setCopied] = useState(false);
 
     const handleCopyId = () => {
-        if (!user) return;
-        navigator.clipboard.writeText(user.uid);
+        if (!user || !user.email) return;
+        navigator.clipboard.writeText(user.email);
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
     };
@@ -155,13 +156,13 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onSave }) => {
                         <div className="space-y-4">
                             <div>
                                 <label className="block text-sm font-medium text-brand-gray-light dark:text-gray-400 mb-1">
-                                    Seu ID Único de Acesso (Copie e envie para quem vai colaborar com você)
+                                    Seu E-mail de Acesso (Informe ao parceiro(a) para que ele(a) te convide)
                                 </label>
                                 <div className="flex gap-2">
                                     <input 
                                         type="text" 
                                         readOnly 
-                                        value={user?.uid || ''} 
+                                        value={user?.email || ''} 
                                         className="flex-1 p-2 border rounded-md bg-gray-50 dark:bg-gray-900 dark:border-gray-600 text-sm font-mono focus:outline-none"
                                     />
                                     <button 
@@ -222,11 +223,12 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onSave }) => {
                                 <>
                                     <form onSubmit={onAddCollab} className="flex gap-2">
                                         <input 
-                                            type="text" 
-                                            placeholder="Cole o ID Único do parceiro(a) aqui" 
+                                            type="email" 
+                                            placeholder="Digite o e-mail do parceiro(a) aqui" 
                                             value={collabInput}
                                             onChange={e => setCollabInput(e.target.value)}
                                             className="flex-1 p-2 border rounded-md bg-white dark:bg-gray-700 dark:border-gray-600 focus:ring-2 focus:ring-brand-gold focus:border-transparent outline-none text-sm transition-all"
+                                            required
                                         />
                                         <button 
                                             type="submit"
@@ -244,13 +246,16 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onSave }) => {
                                             <div className="border dark:border-gray-600 rounded-lg divide-y dark:divide-gray-600 overflow-hidden bg-white dark:bg-gray-700">
                                                 {collaborators.map(collabId => (
                                                     <div key={collabId} className="p-2.5 flex justify-between items-center text-xs gap-2">
-                                                        <span className="font-mono text-gray-500 dark:text-gray-300 truncate max-w-[200px]" title={collabId}>
-                                                            {collabId}
-                                                        </span>
+                                                        <div className="flex items-center gap-1.5 min-w-0">
+                                                            <Icon name="person" className="text-gray-400 text-sm flex-shrink-0" />
+                                                            <span className="font-medium text-gray-700 dark:text-gray-300 truncate" title={collabId}>
+                                                                {collaboratorEmails[collabId] || collabId}
+                                                            </span>
+                                                        </div>
                                                         <button 
                                                             type="button"
                                                             onClick={() => onRemoveCollab(collabId)}
-                                                            className="text-red-500 hover:text-red-700 p-1 rounded hover:bg-red-50 dark:hover:bg-red-900/30 transition-colors"
+                                                            className="text-red-500 hover:text-red-700 p-1 rounded hover:bg-red-50 dark:hover:bg-red-900/30 transition-colors flex-shrink-0"
                                                             title="Remover Colaborador"
                                                         >
                                                             <Icon name="delete" className="text-base" />

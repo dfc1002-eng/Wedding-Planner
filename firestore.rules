@@ -29,7 +29,10 @@ service cloud.firestore {
     match /users/{userId} {
       // Dono pode ler/escrever. Colaboradores podem ler e listar se estiverem no array de colaboradores.
       allow get: if isOwner(userId) || (isAuthenticated() && 'collaborators' in resource.data && resource.data.collaborators.hasAny([request.auth.uid]));
-      allow list: if isAuthenticated() && 'collaborators' in resource.data && resource.data.collaborators.hasAny([request.auth.uid]);
+      allow list: if isAuthenticated() && (
+                    ('collaborators' in resource.data && resource.data.collaborators.hasAny([request.auth.uid])) ||
+                    (request.query.limit == 1 && 'email' in resource.data)
+                  );
       allow create: if isOwner(userId);
       allow update: if isOwner(userId) || 
                     (isCollaborator(userId) && 

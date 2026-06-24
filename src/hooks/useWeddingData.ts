@@ -13,6 +13,7 @@ import {
     getDocs,
     setDoc,
     getDoc,
+    limit,
 } from 'firebase/firestore';
 import { 
     ref, 
@@ -60,7 +61,37 @@ export const useWeddingData = () => {
         return saved || null;
     });
     const [collaborators, setCollaborators] = useState<string[]>([]);
+    const [collaboratorEmails, setCollaboratorEmails] = useState<{ [uid: string]: string }>({});
     const [sharedWeddings, setSharedWeddings] = useState<any[]>([]);
+
+    // Carrega os emails dos colaboradores a partir de seus UIDs
+    useEffect(() => {
+        if (collaborators.length === 0) {
+            setCollaboratorEmails({});
+            return;
+        }
+
+        const fetchEmails = async () => {
+            const emailsMap: { [uid: string]: string } = {};
+            for (const collabId of collaborators) {
+                try {
+                    const collabRef = doc(db, 'users', collabId);
+                    const snap = await getDoc(collabRef);
+                    if (snap.exists()) {
+                        emailsMap[collabId] = snap.data().email || collabId;
+                    } else {
+                        emailsMap[collabId] = collabId;
+                    }
+                } catch (e) {
+                    console.error("Erro ao buscar e-mail do colaborador:", e);
+                    emailsMap[collabId] = collabId;
+                }
+            }
+            setCollaboratorEmails(emailsMap);
+        };
+        
+        fetchEmails();
+    }, [collaborators]);
 
     // Sincroniza o activeWeddingId com o UID do usuário após login
     useEffect(() => {
@@ -119,15 +150,32 @@ export const useWeddingData = () => {
         }
     }, [user]);
 
-    const handleAddCollaborator = useCallback(async (collabUid: string) => {
+    const handleAddCollaborator = useCallback(async (emailInput: string) => {
         if (!user || !activeWeddingId) return;
-        if (collabUid === user.uid) {
+        const targetEmail = emailInput.trim().toLowerCase();
+        
+        if (targetEmail === user.email?.toLowerCase()) {
             throw new Error("Você não pode se adicionar como colaborador do seu próprio casamento.");
         }
         
         if (activeWeddingId !== user.uid) {
             throw new Error("Apenas o dono do casamento pode adicionar colaboradores.");
         }
+
+        // Busca o usuário pelo e-mail
+        const q = query(
+            collection(db, 'users'),
+            where('email', '==', targetEmail),
+            limit(1)
+        );
+        const querySnapshot = await getDocs(q);
+        
+        if (querySnapshot.empty) {
+            throw new Error("Usuário não encontrado. Certifique-se de que o parceiro já se cadastrou no sistema com este e-mail.");
+        }
+
+        const collabUserDoc = querySnapshot.docs[0];
+        const collabUid = collabUserDoc.id;
 
         const userRef = doc(db, 'users', activeWeddingId);
         const docSnap = await getDoc(userRef);
@@ -138,12 +186,6 @@ export const useWeddingData = () => {
             
             if (currentCollaborators.includes(collabUid)) {
                 throw new Error("Este usuário já é um colaborador.");
-            }
-
-            const collabUserRef = doc(db, 'users', collabUid);
-            const collabUserSnap = await getDoc(collabUserRef);
-            if (!collabUserSnap.exists()) {
-                throw new Error("ID de usuário não encontrado. Certifique-se de que o parceiro já fez login no sistema pelo menos uma vez.");
             }
 
             const updated = [...currentCollaborators, collabUid];
@@ -221,8 +263,11 @@ export const useWeddingData = () => {
                 // Serializa os dados antes de salvar para comparar no listener
                 lastSavedString.current = JSON.stringify(restOfWeddingData);
                 
-                // Salva o documento de usuário principal (com dados sensíveis como totalBudget)
-                await setDoc(userRef, { weddingData: restOfWeddingData }, { merge: true });
+                // Salva o documento de usuário principal (com dados sensíveis como totalBudget e também o e-mail)
+                await setDoc(userRef, { 
+                    weddingData: restOfWeddingData,
+                    email: user.email
+                }, { merge: true });
                 
                 // Salva a cópia pública de RSVP (sem dados sensíveis)
                 const publicRsvpRef = doc(db, 'users', activeWeddingId, 'public', 'rsvp');
@@ -263,6 +308,12 @@ export const useWeddingData = () => {
                 const data = docSnap.data();
                 console.log("Received update from Firestore (User Doc):", data);
                 
+                // Se o e-mail não estiver salvo no documento, ou se estiver desatualizado, atualizamos
+                if (userId === user.uid && data.email !== user.email && user.email) {
+                    setDoc(userRef, { email: user.email }, { merge: true })
+                        .catch(e => console.error("Erro ao sincronizar e-mail no Firestore:", e));
+                }
+                
                 // Atualiza colaboradores
                 if (data.collaborators) {
                     setCollaborators(data.collaborators);
@@ -296,6 +347,14 @@ export const useWeddingData = () => {
             } else {
                 console.log("User document does not exist yet.");
                 setCollaborators([]);
+                // Se for o próprio usuário, inicializa o documento com email e dados vazios
+                if (userId === user.uid && user.email) {
+                    setDoc(userRef, {
+                        email: user.email,
+                        weddingData: INITIAL_WEDDING_DATA,
+                        collaborators: []
+                    }).catch(e => console.error("Erro ao inicializar documento do usuário:", e));
+                }
             }
             markAsLoaded('user');
         }, (error) => {
@@ -708,6 +767,7 @@ export const useWeddingData = () => {
         activeWeddingId,
         changeActiveWedding,
         collaborators,
+        collaboratorEmails,
         sharedWeddings,
         handleAddCollaborator,
         handleRemoveCollaborator,
