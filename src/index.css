@@ -1,0 +1,28 @@
+@import "tailwindcss";
+
+@theme {
+  --color-brand-background: #f9f8f6;
+  
+  --color-brand-pink-light: #f8eae0;
+  --color-brand-pink: #f4dcd0;
+  --color-brand-pink-dark: #e9beb4;
+  
+  --color-brand-gold: #dbb27f;
+  
+  --color-brand-gray-light: #a9a9a9;
+  --color-brand-gray: #565656;
+  
+  --color-brand-green: #a3b18a;
+  --color-brand-red: #e63946;
+
+  --font-title: "Playfair Display", serif;
+  --font-body: "Lato", sans-serif;
+}
+
+body {
+  font-family: var(--font-body);
+}
+
+.material-icons {
+  font-size: inherit;
+}

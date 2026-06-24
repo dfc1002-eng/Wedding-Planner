@@ -8,15 +8,21 @@ const WhatsAppIcon = ({ className }: { className?: string }) => (
     </svg>
 );
 
-const Icon = ({ name, className = '' }: { name: string, className?: string }) => {
+interface IconProps extends React.HTMLAttributes<HTMLSpanElement> {
+    name: string;
+    className?: string;
+    title?: string;
+}
+
+const Icon = ({ name, className = '', ...props }: IconProps) => {
     if (name === 'whatsapp') {
         return (
-            <span className={`inline-block align-middle w-[1em] h-[1em] ${className}`}>
+            <span className={`inline-block align-middle w-[1em] h-[1em] ${className}`} {...props}>
                 <WhatsAppIcon className="w-full h-full" />
             </span>
         );
     }
-    return <span className={`material-icons ${className}`}>{name}</span>;
+    return <span className={`material-icons ${className}`} {...props}>{name}</span>;
 };
 
 export default Icon;

@@ -23,8 +23,9 @@ const ThankYouModal: React.FC<ThankYouModalProps> = ({ isOpen, onClose, guestNam
 
     const handleSend = () => {
         if (!phoneNumber) return;
+        const cleanPhone = phoneNumber.replace(/\D/g, '');
         const encodedMessage = encodeURIComponent(message);
-        const url = `https://wa.me/55${phoneNumber}?text=${encodedMessage}`;
+        const url = `https://wa.me/${cleanPhone}?text=${encodedMessage}`;
         window.open(url, '_blank');
         onClose();
     };

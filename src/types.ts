@@ -30,6 +30,7 @@ export interface WeddingData {
   totalBudget: number;
   venueName?: string;
   weddingWebsite?: string;
+  id?: string;
 }
 
 export interface Addendum {
@@ -52,6 +53,7 @@ export interface Vendor {
   contractLink?: string;
   contractUrl?: string;
   fileName?: string;
+  userId?: string;
 }
 
 export interface Payment {
@@ -61,6 +63,7 @@ export interface Payment {
   dueDate: Date;
   status: PaymentStatus;
   paymentDate?: Date;
+  userId?: string;
 }
 
 export interface NextPayment {
@@ -77,6 +80,7 @@ export interface Task {
   timeframe: string;
   isImportant?: boolean;
   createsVendorCategory?: string;
+  userId?: string;
 }
 
 export interface Guest {
@@ -89,6 +93,9 @@ export interface Guest {
     group: string; // Ex: 'Família da Noiva', 'Amigos do Noivo'
     table?: number;
     plusOnes: number; // Acompanhantes convidados
+    confirmedPlusOnes?: number;
+    userId?: string;
+    nameNormalized?: string;
 }
 
 export interface Gift {
@@ -98,6 +105,7 @@ export interface Gift {
     amount: number;
     description: string;
     thankYouSent: boolean;
+    userId?: string;
 }
 
 export interface Parcel {

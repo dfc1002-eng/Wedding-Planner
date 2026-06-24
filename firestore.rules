@@ -14,61 +14,80 @@ service cloud.firestore {
       return isAuthenticated() && request.auth.uid == userId;
     }
 
-    // Verifica se o documento que já existe no banco pertence ao usuário logado
-    function isResourceOwner() {
-      return isAuthenticated() && resource.data.userId == request.auth.uid;
-    }
-
-    // Verifica se os dados que estão sendo criados pertencem ao usuário logado
-    function isValidOwner() {
-       return request.resource.data.userId == request.auth.uid;
+    // Verifica se o usuário é o dono ou está cadastrado como colaborador no documento do dono
+    function isCollaborator(ownerId) {
+      return isAuthenticated() && 
+             (ownerId == request.auth.uid || 
+              (exists(/databases/$(database)/documents/users/$(ownerId)) && 
+               'collaborators' in get(/databases/$(database)/documents/users/$(ownerId)).data && 
+               get(/databases/$(database)/documents/users/$(ownerId)).data.collaborators.hasAny([request.auth.uid])));
     }
 
     // --- REGRAS DAS COLEÇÕES ---
-
+ 
     // 1. Coleção USERS
     match /users/{userId} {
-      // Público pode ler apenas dados específicos (necessário para o RSVP saber os nomes dos noivos)
+      // Dono pode ler/escrever. Colaboradores podem ler e listar se estiverem no array de colaboradores.
+      allow get: if isOwner(userId) || (isAuthenticated() && 'collaborators' in resource.data && resource.data.collaborators.hasAny([request.auth.uid]));
+      allow list: if isAuthenticated() && 'collaborators' in resource.data && resource.data.collaborators.hasAny([request.auth.uid]);
+      allow create: if isOwner(userId);
+      allow update: if isOwner(userId) || 
+                    (isCollaborator(userId) && 
+                     !request.resource.data.diff(resource.data).affectedKeys().hasAny(['collaborators']));
+      allow delete: if isOwner(userId);
+      
+      // Subdocumento público de RSVP (apenas dados não-sensíveis do casamento)
+      match /public/rsvp {
+        allow read: if true;
+        allow write: if isOwner(userId) || isCollaborator(userId);
+      }
+    }
+ 
+    // 2. Coleção GUESTS (Convidados) - SEGURANÇA REFORÇADA
+    match /guests/{guestId} {
+      // Permitir get público para visualização individual por ID (RSVP)
       allow get: if true;
       
-      // O dono da conta pode fazer tudo (listar, criar, editar, apagar)
-      allow list, create, update, delete: if isOwner(userId);
-    }
-
-    // 2. Coleção GUESTS (Convidados) - AQUI ESTAVA O PERIGO
-    match /guests/{guestId} {
-      // Qualquer um pode ler (necessário para buscar o convite no RSVP)
-      allow read: if true;
-
-      // ATUALIZAÇÃO SEGURA (A CORREÇÃO):
-      // O dono do casamento (isResourceOwner) pode editar qualquer campo.
+      // Permitir listagem pública apenas se a query for limitada a 1 documento (evita scraping)
+      // Colaboradores e dono podem listar normalmente sem limitações
+      allow list: if isCollaborator(resource.data.userId) || (request.query.limit == 1);
+ 
+      // ATUALIZAÇÃO SEGURA:
+      // Colaboradores podem editar qualquer campo.
       // O público (convidados) só pode alterar os campos 'status' e 'confirmedPlusOnes'.
-      // A função hasOnly garante que nenhum outro campo (como 'name') seja tocado.
-      allow update: if isResourceOwner() || 
+      allow update: if isCollaborator(resource.data.userId) || 
                     (request.resource.data.diff(resource.data).affectedKeys()
                     .hasOnly(['status', 'confirmedPlusOnes']));
-
-      // Apenas o dono pode criar novos convidados ou excluir existentes
-      allow create: if isValidOwner();
-      allow delete: if isResourceOwner();
+ 
+      // Apenas colaboradores podem criar novos convidados ou excluir existentes
+      allow create: if isCollaborator(request.resource.data.userId);
+      allow delete: if isCollaborator(resource.data.userId);
     }
-
+ 
     // 3. Outras Coleções (Totalmente Privadas)
-    // Apenas o dono dos dados pode ler ou escrever
+    // Apenas colaboradores autorizados podem ler ou escrever.
     match /vendors/{vendorId} {
-      allow read, write: if isResourceOwner() || isValidOwner();
+      allow read, delete: if isCollaborator(resource.data.userId);
+      allow create: if isCollaborator(request.resource.data.userId);
+      allow update: if isCollaborator(resource.data.userId) || isCollaborator(request.resource.data.userId);
     }
     
     match /payments/{paymentId} {
-      allow read, write: if isResourceOwner() || isValidOwner();
+      allow read, delete: if isCollaborator(resource.data.userId);
+      allow create: if isCollaborator(request.resource.data.userId);
+      allow update: if isCollaborator(resource.data.userId) || isCollaborator(request.resource.data.userId);
     }
     
     match /tasks/{taskId} {
-      allow read, write: if isResourceOwner() || isValidOwner();
+      allow read, delete: if isCollaborator(resource.data.userId);
+      allow create: if isCollaborator(request.resource.data.userId);
+      allow update: if isCollaborator(resource.data.userId) || isCollaborator(request.resource.data.userId);
     }
     
     match /gifts/{giftId} {
-      allow read, write: if isResourceOwner() || isValidOwner();
+      allow read, delete: if isCollaborator(resource.data.userId);
+      allow create: if isCollaborator(request.resource.data.userId);
+      allow update: if isCollaborator(resource.data.userId) || isCollaborator(request.resource.data.userId);
     }
   }
 }

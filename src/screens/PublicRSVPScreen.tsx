@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { doc, getDoc, collection, query, where, getDocs, updateDoc } from 'firebase/firestore';
+import { doc, getDoc, collection, query, where, getDocs, updateDoc, limit } from 'firebase/firestore';
 import { db } from '../firebase';
 import { WeddingData, Guest, GuestStatus } from '../types';
 import Icon from '../components/ui/Icon';
@@ -21,15 +21,19 @@ const PublicRSVPScreen: React.FC = () => {
     const fetchWeddingInfo = async () => {
       if (!userId) return;
       try {
-        // BUSCA DIRETA E RÁPIDA POR ID
-        const userDocRef = doc(db, 'users', userId);
-        const userDocSnap = await getDoc(userDocRef);
+        // BUSCA DIRETA E RÁPIDA DO RSVP PÚBLICO
+        const publicRsvpRef = doc(db, 'users', userId, 'public', 'rsvp');
+        const rsvpSnap = await getDoc(publicRsvpRef);
         
-        if (userDocSnap.exists()) {
-          const data = userDocSnap.data();
+        if (rsvpSnap.exists()) {
+          const data = rsvpSnap.data();
           // Garante que a data é um objeto Date válido
-          const weddingDate = data.weddingData?.weddingDate?.toDate ? data.weddingData.weddingDate.toDate() : new Date();
-          setWeddingData({ ...data.weddingData, id: userDocSnap.id, weddingDate } as WeddingData);
+          const weddingDate = data.weddingDate?.toDate ? data.weddingDate.toDate() : new Date(data.weddingDate);
+          setWeddingData({
+            coupleNames: data.coupleNames,
+            weddingDate,
+            id: userId
+          } as unknown as WeddingData);
         } else {
           setError('Casamento não encontrado. Verifique o link.');
         }
@@ -54,11 +58,12 @@ const PublicRSVPScreen: React.FC = () => {
 
     try {
       const searchNormalized = normalizeText(guestName);
-      // Busca pelo campo normalizado e pelo userId correto
+      // Busca pelo campo normalizado e pelo userId correto, limitada a 1 para cumprir as regras do Firestore
       const q = query(
         collection(db, 'guests'), 
         where('userId', '==', userId), 
-        where('nameNormalized', '==', searchNormalized)
+        where('nameNormalized', '==', searchNormalized),
+        limit(1)
       );
       
       const snapshot = await getDocs(q);
