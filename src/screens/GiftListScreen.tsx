@@ -1,0 +1,184 @@
+import React, { useState, useMemo, useEffect } from 'react';
+import { useWedding } from '../context/WeddingDataContext';
+import { Gift } from '../types';
+import { formatCurrency } from '../utils';
+import Icon from '../components/ui/Icon';
+import Tooltip from '../components/ui/Tooltip';
+import GiftListItem from '../components/gifts/GiftListItem';
+
+interface GiftListScreenProps {
+    onEditGift: (gift: Gift) => void;
+    onToggleThankYou: (giftId: string) => void;
+    onSendWhatsApp: (gift: Gift, phoneNumber?: string) => void;
+}
+
+const GiftListScreen: React.FC<GiftListScreenProps> = ({ onEditGift, onToggleThankYou, onSendWhatsApp }) => {
+    const { gifts, guests } = useWedding();
+    const [showUnthankedOnly, setShowUnthankedOnly] = useState(false);
+    const [searchTerm, setSearchTerm] = useState(''); // Novo estado para o termo de busca
+    const [currentPage, setCurrentPage] = useState(1);
+    const ITEMS_PER_PAGE = 7; // Limitado a 7 itens por página
+    
+    const guestPhoneMap = useMemo(() => {
+        return new Map(guests.map(guest => [guest.id, guest.phone]));
+    }, [guests]);
+
+    const totalReceived = useMemo(() => {
+        return gifts.reduce((acc, gift) => acc + gift.amount, 0);
+    }, [gifts]);
+
+    const filteredGifts = useMemo(() => {
+        return gifts
+            .filter(gift => {
+                if (!showUnthankedOnly) return true;
+                return !gift.thankYouSent;
+            })
+            .filter(gift => { // Filtrar por termo de busca
+                return gift.guestName.toLowerCase().includes(searchTerm.toLowerCase());
+            })
+            .sort((a, b) => a.guestName.localeCompare(b.guestName));
+    }, [gifts, showUnthankedOnly, searchTerm]); // Adicionar searchTerm como dependência
+
+    // Reset to page 1 when filters or search term change
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [showUnthankedOnly, searchTerm]); // Adicionar searchTerm aqui
+
+    const totalPages = Math.ceil(filteredGifts.length / ITEMS_PER_PAGE);
+
+    // Adjust current page if it's out of bounds (e.g., after deletion)
+    useEffect(() => {
+        if (currentPage > totalPages && totalPages > 0) {
+            setCurrentPage(totalPages);
+        }
+    }, [currentPage, totalPages]);
+
+    const paginatedGifts = useMemo(() => {
+        if (filteredGifts.length === 0) return [];
+        const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+        return filteredGifts.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+    }, [filteredGifts, currentPage]);
+
+    const handleExportCSV = () => {
+        const headers = [ "Convidado", "Valor (R$)", "Descrição do Presente", "Agradecimento Enviado" ];
+        const csvRows = filteredGifts.map(g => [
+            `"${g.guestName.replace(/"/g, '""')}"`,
+            g.amount.toFixed(2),
+            `"${g.description.replace(/"/g, '""')}"`,
+            g.thankYouSent ? 'Sim' : 'Não'
+        ].join(','));
+        
+        const csvContent = [headers.join(','), ...csvRows].join('\n');
+        const blob = new Blob([`\uFEFF${csvContent}`], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement("a");
+        const url = URL.createObjectURL(blob);
+        link.setAttribute("href", url);
+        link.setAttribute("download", "lista_de_presentes.csv");
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
+
+    return (
+        <div>
+            <div className="flex justify-between items-center mb-6">
+                <h2 className="text-3xl font-title text-brand-gray dark:text-white">Lista de Presentes</h2>
+                <Tooltip text="Exportar a lista de presentes filtrada para um arquivo CSV.">
+                    <button
+                        onClick={handleExportCSV}
+                        className="bg-white hover:bg-gray-100 text-brand-gray dark:bg-gray-700 dark:hover:bg-gray-600 font-bold py-2 px-4 rounded-lg flex items-center space-x-2 transition-colors border dark:border-gray-600"
+                    >
+                        <Icon name="download" />
+                        <span>Exportar Lista</span>
+                    </button>
+                </Tooltip>
+            </div>
+
+            <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm mb-6 flex justify-between items-center">
+                <h3 className="font-bold text-brand-gray dark:text-white text-lg">Total Recebido</h3>
+                <p className="text-3xl font-title text-brand-green">{formatCurrency(totalReceived)}</p>
+            </div>
+
+            <div className="bg-white dark:bg-gray-800 p-4 md:p-6 rounded-xl shadow-md">
+                <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-4">
+                    {/* Search Input */}
+                    <div className="relative w-full md:max-w-xs">
+                        <Icon name="search" className="absolute left-3 top-1/2 -translate-y-1/2 text-brand-gray-light" />
+                        <input
+                            type="text"
+                            placeholder="Buscar presente por convidado..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="w-full p-2 pl-10 border rounded-md bg-white dark:bg-gray-700 dark:border-gray-600 focus:ring-brand-gold focus:border-brand-gold"
+                        />
+                    </div>
+                     <label className="flex items-center cursor-pointer">
+                        <input 
+                            type="checkbox" 
+                            checked={showUnthankedOnly} 
+                            onChange={() => setShowUnthankedOnly(!showUnthankedOnly)}
+                            className="h-4 w-4 rounded border-gray-300 text-brand-gold focus:ring-brand-gold"
+                        />
+                        <span className="ml-2 text-sm font-medium">Mostrar apenas não agradecidos</span>
+                    </label>
+                </div>
+
+                {/* Table Header */}
+                <div className="hidden md:flex px-4 py-3 bg-gray-50 dark:bg-gray-900 rounded-t-lg border-b border-gray-200 dark:border-gray-700 sticky top-0 z-10">
+                    <div className="w-full md:w-5/12 font-semibold text-sm text-brand-gray-light dark:text-gray-400">Convidado / Presente</div>
+                    <div className="w-full md:w-2/12 text-center font-semibold text-sm text-brand-gray-light dark:text-gray-400">Valor</div>
+                    <div className="w-full md:w-2/12 text-center font-semibold text-sm text-brand-gray-light dark:text-gray-400">Presente recebido</div> {/* Alterado aqui */}
+                    <div className="w-full md:w-3/12 text-center font-semibold text-sm text-brand-gray-light dark:text-gray-400">Ações</div>
+                </div>
+
+                {/* List Container */}
+                <div className="divide-y divide-gray-100 dark:divide-gray-700">
+                    {paginatedGifts.length > 0 ? (
+                        paginatedGifts.map(gift => (
+                            <GiftListItem
+                                key={gift.id}
+                                gift={gift}
+                                onEdit={() => onEditGift(gift)}
+                                onToggleThankYou={onToggleThankYou}
+                                onSendWhatsApp={onSendWhatsApp}
+                                phoneNumber={guestPhoneMap.get(gift.guestId)}
+                            />
+                        ))
+                    ) : (
+                         <div className="text-center p-10 text-brand-gray-light dark:text-gray-400">
+                            <Icon name="sentiment_dissatisfied" className="text-4xl mx-auto mb-2" />
+                            Nenhum presente encontrado.
+                        </div>
+                    )}
+                </div>
+
+                {/* Pagination Controls */}
+                {totalPages > 1 && (
+                    <div className="flex justify-between items-center p-4 border-t border-gray-200 dark:border-gray-700">
+                        <button
+                            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                            disabled={currentPage === 1}
+                            className="bg-white hover:bg-gray-100 text-brand-gray dark:bg-gray-700 dark:hover:bg-gray-600 font-bold py-2 px-4 rounded-lg flex items-center space-x-2 transition-colors border dark:border-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            <Icon name="chevron_left" />
+                            <span>Anterior</span>
+                        </button>
+                        <span className="text-sm font-semibold text-brand-gray-light dark:text-gray-400">
+                            Página {currentPage} de {totalPages}
+                        </span>
+                        <button
+                            onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                            disabled={currentPage === totalPages}
+                            className="bg-white hover:bg-gray-100 text-brand-gray dark:bg-gray-700 dark:hover:bg-gray-600 font-bold py-2 px-4 rounded-lg flex items-center space-x-2 transition-colors border dark:border-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            <span>Próximo</span>
+                            <Icon name="chevron_right" />
+                        </button>
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+};
+
+export default GiftListScreen;

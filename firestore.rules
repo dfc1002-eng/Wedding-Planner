@@ -1,0 +1,96 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // --- FUNÇÕES AUXILIARES ---
+
+    // Verifica se o usuário está logado
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Verifica se o usuário logado é o dono do documento (pelo ID do usuário na URL/Coleção)
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // Verifica se o usuário é o dono ou está cadastrado como colaborador no documento do dono
+    function isCollaborator(ownerId) {
+      return isAuthenticated() && 
+             (ownerId == request.auth.uid || 
+              (exists(/databases/$(database)/documents/users/$(ownerId)) && 
+               'collaborators' in get(/databases/$(database)/documents/users/$(ownerId)).data && 
+               get(/databases/$(database)/documents/users/$(ownerId)).data.collaborators.hasAny([request.auth.uid])));
+    }
+
+    // --- REGRAS DAS COLEÇÕES ---
+ 
+    // 1. Coleção USERS
+    match /users/{userId} {
+      // Dono pode ler/escrever. Colaboradores podem ler e listar se estiverem no array de colaboradores.
+      allow get: if isOwner(userId) || (isAuthenticated() && 'collaborators' in resource.data && resource.data.collaborators.hasAny([request.auth.uid]));
+      allow list: if isAuthenticated() && (
+                    ('collaborators' in resource.data && resource.data.collaborators.hasAny([request.auth.uid])) ||
+                    (request.query.limit == 1 && 'email' in resource.data)
+                  );
+      allow create: if isOwner(userId);
+      allow update: if isOwner(userId) || 
+                    (isCollaborator(userId) && 
+                     !request.resource.data.diff(resource.data).affectedKeys().hasAny(['collaborators']));
+      allow delete: if isOwner(userId);
+      
+      // Subdocumento público de RSVP (apenas dados não-sensíveis do casamento)
+      match /public/rsvp {
+        allow read: if true;
+        allow write: if isOwner(userId) || isCollaborator(userId);
+      }
+    }
+ 
+    // 2. Coleção GUESTS (Convidados) - SEGURANÇA REFORÇADA
+    match /guests/{guestId} {
+      // Permitir get público para visualização individual por ID (RSVP)
+      allow get: if true;
+      
+      // Permitir listagem pública apenas se a query for limitada a 1 documento (evita scraping)
+      // Colaboradores e dono podem listar normalmente sem limitações
+      allow list: if isCollaborator(resource.data.userId) || (request.query.limit == 1);
+ 
+      // ATUALIZAÇÃO SEGURA:
+      // Colaboradores podem editar qualquer campo.
+      // O público (convidados) só pode alterar os campos 'status' e 'confirmedPlusOnes'.
+      allow update: if isCollaborator(resource.data.userId) || 
+                    (request.resource.data.diff(resource.data).affectedKeys()
+                    .hasOnly(['status', 'confirmedPlusOnes']));
+ 
+      // Apenas colaboradores podem criar novos convidados ou excluir existentes
+      allow create: if isCollaborator(request.resource.data.userId);
+      allow delete: if isCollaborator(resource.data.userId);
+    }
+ 
+    // 3. Outras Coleções (Totalmente Privadas)
+    // Apenas colaboradores autorizados podem ler ou escrever.
+    match /vendors/{vendorId} {
+      allow read, delete: if isCollaborator(resource.data.userId);
+      allow create: if isCollaborator(request.resource.data.userId);
+      allow update: if isCollaborator(resource.data.userId) || isCollaborator(request.resource.data.userId);
+    }
+    
+    match /payments/{paymentId} {
+      allow read, delete: if isCollaborator(resource.data.userId);
+      allow create: if isCollaborator(request.resource.data.userId);
+      allow update: if isCollaborator(resource.data.userId) || isCollaborator(request.resource.data.userId);
+    }
+    
+    match /tasks/{taskId} {
+      allow read, delete: if isCollaborator(resource.data.userId);
+      allow create: if isCollaborator(request.resource.data.userId);
+      allow update: if isCollaborator(resource.data.userId) || isCollaborator(request.resource.data.userId);
+    }
+    
+    match /gifts/{giftId} {
+      allow read, delete: if isCollaborator(resource.data.userId);
+      allow create: if isCollaborator(request.resource.data.userId);
+      allow update: if isCollaborator(resource.data.userId) || isCollaborator(request.resource.data.userId);
+    }
+  }
+}
