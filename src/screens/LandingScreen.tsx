@@ -1,12 +1,37 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import Icon from '../components/ui/Icon';
+import { analytics, remoteConfig } from '../firebase';
+import { getValue, fetchAndActivate } from 'firebase/remote-config';
+import { logEvent } from 'firebase/analytics';
 
 const LandingScreen: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const [slogan, setSlogan] = useState('Planejando o Casamento dos meus Sonhos');
 
+  useEffect(() => {
+    if (remoteConfig) {
+      // Busca e ativa as configurações remotas
+      fetchAndActivate(remoteConfig)
+        .then(() => {
+          const remoteSlogan = getValue(remoteConfig, 'landing_slogan').asString();
+          if (remoteSlogan) {
+            setSlogan(remoteSlogan);
+          }
+        })
+        .catch((err) => {
+          console.warn("Aviso ao buscar Remote Config (pode ser bloqueador de anúncios):", err);
+        });
+    }
+  }, []);
+
+  const handleCtaClick = () => {
+    if (analytics) {
+      logEvent(analytics, 'lp_cta_signup_click');
+    }
+  };
 
   return (
     <div className="min-h-screen bg-brand-background dark:bg-gray-900 text-brand-gray dark:text-gray-200 font-sans selection:bg-brand-pink selection:text-brand-gray">
@@ -21,7 +46,7 @@ const LandingScreen: React.FC = () => {
               </span>
             </div>
             <span className="text-[10px] text-gray-400 dark:text-gray-500 font-medium pl-8 mt-0.5">
-              Planejando o Casamento dos meus Sonhos
+              {slogan}
             </span>
           </div>
 
@@ -74,6 +99,10 @@ const LandingScreen: React.FC = () => {
               Organize o casamento dos seus sonhos <span className="italic font-light block text-brand-gold">sem o estresse de planilhas</span>
             </h1>
             
+            <p className="text-sm font-semibold text-brand-gold uppercase tracking-wider">
+              {slogan}
+            </p>
+
             <p className="text-lg text-gray-600 dark:text-gray-400 max-w-xl">
               Cansou de planilhas de gastos estouradas e checklists confusos? O Meu Sim é a ferramenta inteligente de gestão para noivos focada em organizar tarefas, controlar custos, gerenciar fornecedores e fazer RSVP automático em um só lugar.
             </p>
@@ -81,6 +110,7 @@ const LandingScreen: React.FC = () => {
             <div className="flex flex-col sm:flex-row gap-4 pt-2">
               <Link
                 to={user ? "/dashboard" : "/cadastro"}
+                onClick={handleCtaClick}
                 className="flex items-center justify-center gap-3 px-8 py-4 bg-brand-gold text-white font-bold rounded-2xl shadow-xl shadow-brand-gold/10 hover:bg-brand-gold/90 transition-all hover:-translate-y-1 active:scale-95 text-center"
               >
                 Criar Minha Conta Grátis <Icon name="arrow_forward" />
@@ -420,6 +450,7 @@ const LandingScreen: React.FC = () => {
           <div className="flex flex-col sm:flex-row justify-center gap-4">
             <Link
               to={user ? "/dashboard" : "/cadastro"}
+              onClick={handleCtaClick}
               className="flex items-center justify-center gap-2 px-8 py-4 bg-brand-gold text-white font-bold rounded-2xl shadow-xl hover:bg-brand-gold-dark transition-all hover:-translate-y-1 active:scale-95 text-sm"
             >
               Começar a Planejar Grátis <Icon name="favorite" className="text-sm" />
@@ -441,7 +472,7 @@ const LandingScreen: React.FC = () => {
             <Icon name="favorite" className="text-brand-gold text-xl" />
             <div className="flex flex-col text-left">
               <span className="font-title font-bold text-brand-gray dark:text-white leading-none">Meu Sim</span>
-              <span className="text-[10px] text-gray-400 dark:text-gray-500 mt-1">Planejando o Casamento dos meus Sonhos</span>
+              <span className="text-[10px] text-gray-400 dark:text-gray-500 mt-1">{slogan}</span>
             </div>
           </div>
 

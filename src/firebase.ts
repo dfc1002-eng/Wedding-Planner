@@ -3,6 +3,8 @@ import { initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 import { getStorage } from "firebase/storage";
+import { getAnalytics } from "firebase/analytics";
+import { getRemoteConfig } from "firebase/remote-config";
 
 const firebaseConfig = {
   apiKey: "AIzaSyC-pjnFfWe4-cg9cni16sxxPddMwYlJMgs",
@@ -20,5 +22,17 @@ const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app);
 export const auth = getAuth(app);
 export const storage = getStorage(app);
+
+// Serviços com verificação de SSR (Server-Side Rendering)
+export const analytics = typeof window !== "undefined" ? getAnalytics(app) : null;
+export const remoteConfig = typeof window !== "undefined" ? getRemoteConfig(app) : null;
+
+// Configuração padrão do Remote Config
+if (remoteConfig) {
+  remoteConfig.settings.minimumFetchIntervalMillis = 300000; // 5 minutos para atualizar rápido em testes
+  remoteConfig.defaultConfig = {
+    landing_slogan: "Planejando o Casamento dos meus Sonhos"
+  };
+}
 
 export default app;
