@@ -10,6 +10,7 @@ const LandingScreen: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [slogan, setSlogan] = useState('Planejando o Casamento dos meus Sonhos');
+  const [btnColor, setBtnColor] = useState('#dbb27f');
 
   useEffect(() => {
     if (remoteConfig) {
@@ -19,6 +20,10 @@ const LandingScreen: React.FC = () => {
           const remoteSlogan = getValue(remoteConfig, 'landing_slogan').asString();
           if (remoteSlogan) {
             setSlogan(remoteSlogan);
+          }
+          const remoteBtnColor = getValue(remoteConfig, 'landing_btn_color').asString();
+          if (remoteBtnColor) {
+            setBtnColor(remoteBtnColor);
           }
         })
         .catch((err) => {
@@ -111,7 +116,8 @@ const LandingScreen: React.FC = () => {
               <Link
                 to={user ? "/dashboard" : "/cadastro"}
                 onClick={handleCtaClick}
-                className="flex items-center justify-center gap-3 px-8 py-4 bg-brand-gold text-white font-bold rounded-2xl shadow-xl shadow-brand-gold/10 hover:bg-brand-gold/90 transition-all hover:-translate-y-1 active:scale-95 text-center"
+                className="flex items-center justify-center gap-3 px-8 py-4 text-white font-bold rounded-2xl shadow-xl transition-all hover:-translate-y-1 active:scale-95 text-center hover:brightness-95"
+                style={{ backgroundColor: btnColor }}
               >
                 Criar Minha Conta Grátis <Icon name="arrow_forward" />
               </Link>
@@ -451,7 +457,8 @@ const LandingScreen: React.FC = () => {
             <Link
               to={user ? "/dashboard" : "/cadastro"}
               onClick={handleCtaClick}
-              className="flex items-center justify-center gap-2 px-8 py-4 bg-brand-gold text-white font-bold rounded-2xl shadow-xl hover:bg-brand-gold-dark transition-all hover:-translate-y-1 active:scale-95 text-sm"
+              className="flex items-center justify-center gap-2 px-8 py-4 text-white font-bold rounded-2xl shadow-xl transition-all hover:-translate-y-1 active:scale-95 text-sm hover:brightness-95"
+              style={{ backgroundColor: btnColor }}
             >
               Começar a Planejar Grátis <Icon name="favorite" className="text-sm" />
             </Link>

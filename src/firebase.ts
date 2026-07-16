@@ -31,7 +31,8 @@ export const remoteConfig = typeof window !== "undefined" ? getRemoteConfig(app)
 if (remoteConfig) {
   remoteConfig.settings.minimumFetchIntervalMillis = 300000; // 5 minutos para atualizar rápido em testes
   remoteConfig.defaultConfig = {
-    landing_slogan: "Planejando o Casamento dos meus Sonhos"
+    landing_slogan: "Planejando o Casamento dos meus Sonhos",
+    landing_btn_color: "#dbb27f"
   };
 }
 
